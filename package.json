@@ -10,6 +10,8 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
+		"@auth/core": "0.36.0",
+		"@convex-dev/auth": "^0.0.73",
 		"@convex-dev/react-query": "0.0.0-alpha.5",
 		"@radix-ui/react-avatar": "^1.1.1",
 		"@radix-ui/react-collapsible": "^1.1.1",

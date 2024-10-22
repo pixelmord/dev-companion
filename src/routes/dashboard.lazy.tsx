@@ -1,23 +1,23 @@
 import {
 	Breadcrumb,
-	BreadcrumbList,
 	BreadcrumbItem,
 	BreadcrumbLink,
-	BreadcrumbSeparator,
+	BreadcrumbList,
 	BreadcrumbPage,
+	BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@radix-ui/react-separator";
-import { createLazyFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { createLazyFileRoute } from "@tanstack/react-router";
 import { api } from "../../convex/_generated/api";
 
 import { convexQuery } from "@convex-dev/react-query";
-export const Route = createLazyFileRoute("/")({
-	component: Index,
+export const Route = createLazyFileRoute("/dashboard")({
+	component: Dashboard,
 });
 
-function Index() {
+function Dashboard() {
 	const { data } = useQuery(convexQuery(api.tasks.get, {}));
 	return (
 		<>
