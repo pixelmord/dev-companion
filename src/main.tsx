@@ -1,6 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-
+import { ConvexQueryClient } from "@convex-dev/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ConvexProvider, ConvexReactClient } from "convex/react";
 import "./index.css";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 
@@ -17,7 +19,17 @@ declare module "@tanstack/react-router" {
 		router: typeof router;
 	}
 }
-
+const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
+const convexQueryClient = new ConvexQueryClient(convex);
+const queryClient = new QueryClient({
+	defaultOptions: {
+		queries: {
+			queryKeyHashFn: convexQueryClient.hashFn(),
+			queryFn: convexQueryClient.queryFn(),
+		},
+	},
+});
+convexQueryClient.connect(queryClient);
 // Render the app
 const rootElement = document.getElementById("root");
 if (!rootElement) {
@@ -28,9 +40,13 @@ if (!rootElement.innerHTML) {
 	const root = createRoot(rootElement);
 	root.render(
 		<StrictMode>
-			<ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-				<RouterProvider router={router} />
-			</ThemeProvider>
+			<ConvexProvider client={convex}>
+				<QueryClientProvider client={queryClient}>
+					<ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+						<RouterProvider router={router} />
+					</ThemeProvider>
+				</QueryClientProvider>
+			</ConvexProvider>
 		</StrictMode>,
 	);
 }

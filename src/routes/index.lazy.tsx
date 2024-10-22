@@ -9,12 +9,16 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@radix-ui/react-separator";
 import { createLazyFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../../convex/_generated/api";
 
+import { convexQuery } from "@convex-dev/react-query";
 export const Route = createLazyFileRoute("/")({
 	component: Index,
 });
 
 function Index() {
+	const { data } = useQuery(convexQuery(api.tasks.get, {}));
 	return (
 		<>
 			<header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
@@ -37,11 +41,15 @@ function Index() {
 				</div>
 			</header>
 			<div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-				<div className="grid auto-rows-min gap-4 md:grid-cols-3">
-					<div className="aspect-video rounded-xl bg-muted/50" />
-					<div className="aspect-video rounded-xl bg-muted/50" />
-					<div className="aspect-video rounded-xl bg-muted/50" />
-				</div>
+				{data?.map((task) => (
+					<div
+						key={task._id}
+						className="p-4 bg-muted/50 rounded-xl flex space-x-2"
+					>
+						<h3 className="text-lg font-semibold">{task.text}</h3>
+						<p>{task.isCompleted && "✅"}</p>
+					</div>
+				))}
 				<div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
 			</div>
 		</>
