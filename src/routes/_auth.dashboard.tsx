@@ -9,11 +9,11 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@radix-ui/react-separator";
 import { useQuery } from "@tanstack/react-query";
-import { createLazyFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { api } from "../../convex/_generated/api";
 
 import { convexQuery } from "@convex-dev/react-query";
-export const Route = createLazyFileRoute("/dashboard")({
+export const Route = createFileRoute("/_auth/dashboard")({
 	component: Dashboard,
 });
 

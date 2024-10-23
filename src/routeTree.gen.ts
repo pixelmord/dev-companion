@@ -16,19 +16,13 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as LoginImport } from './routes/login'
 import { Route as AuthImport } from './routes/_auth'
 import { Route as IndexImport } from './routes/index'
+import { Route as AuthDashboardImport } from './routes/_auth.dashboard'
 
 // Create Virtual Routes
 
-const DashboardLazyImport = createFileRoute('/dashboard')()
 const AboutLazyImport = createFileRoute('/about')()
 
 // Create/Update Routes
-
-const DashboardLazyRoute = DashboardLazyImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/dashboard.lazy').then((d) => d.Route))
 
 const AboutLazyRoute = AboutLazyImport.update({
   id: '/about',
@@ -51,6 +45,12 @@ const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
+} as any)
+
+const AuthDashboardRoute = AuthDashboardImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -85,41 +85,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutLazyImport
       parentRoute: typeof rootRoute
     }
-    '/dashboard': {
-      id: '/dashboard'
+    '/_auth/dashboard': {
+      id: '/_auth/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardLazyImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthDashboardImport
+      parentRoute: typeof AuthImport
     }
   }
 }
 
 // Create and export the route tree
 
+interface AuthRouteChildren {
+  AuthDashboardRoute: typeof AuthDashboardRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthDashboardRoute: AuthDashboardRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '': typeof AuthRoute
+  '': typeof AuthRouteWithChildren
   '/login': typeof LoginRoute
   '/about': typeof AboutLazyRoute
-  '/dashboard': typeof DashboardLazyRoute
+  '/dashboard': typeof AuthDashboardRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '': typeof AuthRoute
+  '': typeof AuthRouteWithChildren
   '/login': typeof LoginRoute
   '/about': typeof AboutLazyRoute
-  '/dashboard': typeof DashboardLazyRoute
+  '/dashboard': typeof AuthDashboardRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/_auth': typeof AuthRoute
+  '/_auth': typeof AuthRouteWithChildren
   '/login': typeof LoginRoute
   '/about': typeof AboutLazyRoute
-  '/dashboard': typeof DashboardLazyRoute
+  '/_auth/dashboard': typeof AuthDashboardRoute
 }
 
 export interface FileRouteTypes {
@@ -127,24 +137,22 @@ export interface FileRouteTypes {
   fullPaths: '/' | '' | '/login' | '/about' | '/dashboard'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '' | '/login' | '/about' | '/dashboard'
-  id: '__root__' | '/' | '/_auth' | '/login' | '/about' | '/dashboard'
+  id: '__root__' | '/' | '/_auth' | '/login' | '/about' | '/_auth/dashboard'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   LoginRoute: typeof LoginRoute
   AboutLazyRoute: typeof AboutLazyRoute
-  DashboardLazyRoute: typeof DashboardLazyRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   LoginRoute: LoginRoute,
   AboutLazyRoute: AboutLazyRoute,
-  DashboardLazyRoute: DashboardLazyRoute,
 }
 
 export const routeTree = rootRoute
@@ -162,15 +170,17 @@ export const routeTree = rootRoute
         "/",
         "/_auth",
         "/login",
-        "/about",
-        "/dashboard"
+        "/about"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
     "/_auth": {
-      "filePath": "_auth.tsx"
+      "filePath": "_auth.tsx",
+      "children": [
+        "/_auth/dashboard"
+      ]
     },
     "/login": {
       "filePath": "login.tsx"
@@ -178,8 +188,9 @@ export const routeTree = rootRoute
     "/about": {
       "filePath": "about.lazy.tsx"
     },
-    "/dashboard": {
-      "filePath": "dashboard.lazy.tsx"
+    "/_auth/dashboard": {
+      "filePath": "_auth.dashboard.tsx",
+      "parent": "/_auth"
     }
   }
 }
