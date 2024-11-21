@@ -1,10 +1,6 @@
 import { ConvexAuthProvider, useAuthToken } from "@convex-dev/auth/react";
-import { ConvexQueryClient, convexQuery } from "@convex-dev/react-query";
-import {
-	QueryClient,
-	QueryClientProvider,
-	useQuery,
-} from "@tanstack/react-query";
+import { ConvexQueryClient } from "@convex-dev/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConvexReactClient } from "convex/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -12,9 +8,9 @@ import "./index.css";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 
 import type { DataModel } from "convex/_generated/dataModel";
-import { api } from "../convex/_generated/api";
 import { ThemeProvider } from "./components/ThemeProvider";
 import Ripple from "./components/ui/ripple";
+import { useCurrentUser } from "./features/user/use-current-user";
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
 
@@ -54,7 +50,7 @@ convexQueryClient.connect(queryClient);
 function App() {
 	const token = useAuthToken();
 	const isAuthenticated = !!token;
-	const { data: user, isLoading } = useQuery(convexQuery(api.users.viewer, {}));
+	const { data: user, isLoading } = useCurrentUser();
 	const auth: AuthContext = { isAuthenticated, token, user };
 	if (isLoading) {
 		return (

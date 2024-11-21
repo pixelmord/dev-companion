@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f2f2f2; }
+        canvas { border: 1px solid black; }
+    </style>
+</head>
+<body>
+
+<canvas id="spiralCanvas" width="600" height="400"></canvas>
+
+<script>
+    const canvas = document.getElementById('spiralCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let rotation = 0;
+
+    function drawSpiral(ctx, centerX, centerY, maxRadius, color, rotation) {
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(rotation);
+
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+
+        // Draw a spiral by increasing radius as angle increases
+        for (let angle = 0; angle < 8 * Math.PI; angle += 0.1) {
+            const radius = (angle / (8 * Math.PI)) * maxRadius;
+            const x = radius * Math.cos(angle);
+            const y = radius * Math.sin(angle);
+
+            if (angle === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawEyeSpirals() {
+        const eyeDistance = 200; // Distance between eyes
+        const leftEyeX = canvas.width / 2 - eyeDistance / 2;
+        const rightEyeX = canvas.width / 2 + eyeDistance / 2;
+        const eyeY = canvas.height / 2;
+        const maxRadius = 80; // Smaller radius for each eye
+        const color = '#FF0000';
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw left eye spiral
+        drawSpiral(ctx, leftEyeX, eyeY, maxRadius, color, rotation);
+
+        // Draw right eye spiral
+        drawSpiral(ctx, rightEyeX, eyeY, maxRadius, color, rotation);
+    }
+
+    function animate() {
+        rotation += 0.02;
+        drawEyeSpirals();
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+</script>
+
+</body>
+</html>

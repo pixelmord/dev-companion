@@ -22,15 +22,11 @@ import {
 	SidebarHeader,
 	SidebarRail,
 } from "@/components/ui/sidebar";
+import { useCurrentUser } from "@/features/user/use-current-user";
 import type { ComponentProps } from "react";
 
 // This is sample data.
 const data = {
-	user: {
-		name: "shadcn",
-		email: "m@example.com",
-		avatar: "/avatars/shadcn.jpg",
-	},
 	teams: [
 		{
 			name: "Acme Inc",
@@ -50,33 +46,33 @@ const data = {
 	],
 	navMain: [
 		{
-			title: "Playground",
+			title: "Network",
 			url: "#",
 			icon: SquareTerminal,
 			isActive: true,
 			items: [
 				{
-					title: "History",
+					title: "Overview",
+					url: "#",
+				},
+				{
+					title: "Following",
 					url: "#",
 				},
 				{
 					title: "Starred",
 					url: "#",
 				},
-				{
-					title: "Settings",
-					url: "#",
-				},
 			],
 		},
 		{
-			title: "Models",
+			title: "Tools",
 			url: "#",
 			icon: Bot,
 			items: [
 				{
-					title: "Genesis",
-					url: "#",
+					title: "Tasks",
+					url: "/tasks",
 				},
 				{
 					title: "Explorer",
@@ -155,6 +151,7 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
+	const { data: user } = useCurrentUser();
 	return (
 		<Sidebar collapsible="icon" {...props}>
 			<SidebarHeader>
@@ -164,9 +161,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
 				<NavMain items={data.navMain} />
 				<NavProjects projects={data.projects} />
 			</SidebarContent>
-			<SidebarFooter>
-				<NavUser user={data.user} />
-			</SidebarFooter>
+			<SidebarFooter>{!!user && <NavUser user={user} />}</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>
 	);
