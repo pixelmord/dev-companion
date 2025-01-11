@@ -1,5 +1,3 @@
-/* prettier-ignore-start */
-
 /* eslint-disable */
 /**
  * Generated `api` utility.
@@ -16,6 +14,8 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as auth from "../auth.js";
+import type * as board from "../board.js";
+import type * as crons from "../crons.js";
 import type * as http from "../http.js";
 import type * as tasks from "../tasks.js";
 import type * as users from "../users.js";
@@ -30,6 +30,8 @@ import type * as users from "../users.js";
  */
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  board: typeof board;
+  crons: typeof crons;
   http: typeof http;
   tasks: typeof tasks;
   users: typeof users;
@@ -42,5 +44,3 @@ export declare const internal: FilterApi<
   typeof fullApi,
   FunctionReference<any, "internal">
 >;
-
-/* prettier-ignore-end */

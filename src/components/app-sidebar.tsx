@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useCurrentUser } from "@/features/user/use-current-user";
 import type { ComponentProps } from "react";
+import { ModeToggle } from "./ModeToggle";
 
 // This is sample data.
 const data = {
@@ -75,8 +76,8 @@ const data = {
 					url: "/tasks",
 				},
 				{
-					title: "Explorer",
-					url: "#",
+					title: "Boards",
+					url: "/boards",
 				},
 				{
 					title: "Quantum",

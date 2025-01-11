@@ -18,6 +18,8 @@ import { Route as AuthImport } from './routes/_auth'
 import { Route as IndexImport } from './routes/index'
 import { Route as AuthTasksImport } from './routes/_auth/tasks'
 import { Route as AuthDashboardImport } from './routes/_auth/dashboard'
+import { Route as AuthBoardsImport } from './routes/_auth/boards'
+import { Route as AuthBoardsBoardIdImport } from './routes/_auth/boards.$boardId'
 
 // Create Virtual Routes
 
@@ -60,6 +62,18 @@ const AuthDashboardRoute = AuthDashboardImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
+const AuthBoardsRoute = AuthBoardsImport.update({
+  id: '/boards',
+  path: '/boards',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthBoardsBoardIdRoute = AuthBoardsBoardIdImport.update({
+  id: '/$boardId',
+  path: '/$boardId',
+  getParentRoute: () => AuthBoardsRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -92,6 +106,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutLazyImport
       parentRoute: typeof rootRoute
     }
+    '/_auth/boards': {
+      id: '/_auth/boards'
+      path: '/boards'
+      fullPath: '/boards'
+      preLoaderRoute: typeof AuthBoardsImport
+      parentRoute: typeof AuthImport
+    }
     '/_auth/dashboard': {
       id: '/_auth/dashboard'
       path: '/dashboard'
@@ -106,17 +127,38 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthTasksImport
       parentRoute: typeof AuthImport
     }
+    '/_auth/boards/$boardId': {
+      id: '/_auth/boards/$boardId'
+      path: '/$boardId'
+      fullPath: '/boards/$boardId'
+      preLoaderRoute: typeof AuthBoardsBoardIdImport
+      parentRoute: typeof AuthBoardsImport
+    }
   }
 }
 
 // Create and export the route tree
 
+interface AuthBoardsRouteChildren {
+  AuthBoardsBoardIdRoute: typeof AuthBoardsBoardIdRoute
+}
+
+const AuthBoardsRouteChildren: AuthBoardsRouteChildren = {
+  AuthBoardsBoardIdRoute: AuthBoardsBoardIdRoute,
+}
+
+const AuthBoardsRouteWithChildren = AuthBoardsRoute._addFileChildren(
+  AuthBoardsRouteChildren,
+)
+
 interface AuthRouteChildren {
+  AuthBoardsRoute: typeof AuthBoardsRouteWithChildren
   AuthDashboardRoute: typeof AuthDashboardRoute
   AuthTasksRoute: typeof AuthTasksRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
+  AuthBoardsRoute: AuthBoardsRouteWithChildren,
   AuthDashboardRoute: AuthDashboardRoute,
   AuthTasksRoute: AuthTasksRoute,
 }
@@ -128,8 +170,10 @@ export interface FileRoutesByFullPath {
   '': typeof AuthRouteWithChildren
   '/login': typeof LoginRoute
   '/about': typeof AboutLazyRoute
+  '/boards': typeof AuthBoardsRouteWithChildren
   '/dashboard': typeof AuthDashboardRoute
   '/tasks': typeof AuthTasksRoute
+  '/boards/$boardId': typeof AuthBoardsBoardIdRoute
 }
 
 export interface FileRoutesByTo {
@@ -137,8 +181,10 @@ export interface FileRoutesByTo {
   '': typeof AuthRouteWithChildren
   '/login': typeof LoginRoute
   '/about': typeof AboutLazyRoute
+  '/boards': typeof AuthBoardsRouteWithChildren
   '/dashboard': typeof AuthDashboardRoute
   '/tasks': typeof AuthTasksRoute
+  '/boards/$boardId': typeof AuthBoardsBoardIdRoute
 }
 
 export interface FileRoutesById {
@@ -147,23 +193,43 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteWithChildren
   '/login': typeof LoginRoute
   '/about': typeof AboutLazyRoute
+  '/_auth/boards': typeof AuthBoardsRouteWithChildren
   '/_auth/dashboard': typeof AuthDashboardRoute
   '/_auth/tasks': typeof AuthTasksRoute
+  '/_auth/boards/$boardId': typeof AuthBoardsBoardIdRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '' | '/login' | '/about' | '/dashboard' | '/tasks'
+  fullPaths:
+    | '/'
+    | ''
+    | '/login'
+    | '/about'
+    | '/boards'
+    | '/dashboard'
+    | '/tasks'
+    | '/boards/$boardId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '' | '/login' | '/about' | '/dashboard' | '/tasks'
+  to:
+    | '/'
+    | ''
+    | '/login'
+    | '/about'
+    | '/boards'
+    | '/dashboard'
+    | '/tasks'
+    | '/boards/$boardId'
   id:
     | '__root__'
     | '/'
     | '/_auth'
     | '/login'
     | '/about'
+    | '/_auth/boards'
     | '/_auth/dashboard'
     | '/_auth/tasks'
+    | '/_auth/boards/$boardId'
   fileRoutesById: FileRoutesById
 }
 
@@ -203,6 +269,7 @@ export const routeTree = rootRoute
     "/_auth": {
       "filePath": "_auth.tsx",
       "children": [
+        "/_auth/boards",
         "/_auth/dashboard",
         "/_auth/tasks"
       ]
@@ -213,6 +280,13 @@ export const routeTree = rootRoute
     "/about": {
       "filePath": "about.lazy.tsx"
     },
+    "/_auth/boards": {
+      "filePath": "_auth/boards.tsx",
+      "parent": "/_auth",
+      "children": [
+        "/_auth/boards/$boardId"
+      ]
+    },
     "/_auth/dashboard": {
       "filePath": "_auth/dashboard.tsx",
       "parent": "/_auth"
@@ -220,6 +294,10 @@ export const routeTree = rootRoute
     "/_auth/tasks": {
       "filePath": "_auth/tasks.tsx",
       "parent": "/_auth"
+    },
+    "/_auth/boards/$boardId": {
+      "filePath": "_auth/boards.$boardId.tsx",
+      "parent": "/_auth/boards"
     }
   }
 }

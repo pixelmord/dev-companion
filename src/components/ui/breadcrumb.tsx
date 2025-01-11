@@ -3,6 +3,7 @@ import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import { Link } from "@tanstack/react-router";
 
 const Breadcrumb = React.forwardRef<
 	HTMLElement,
@@ -45,7 +46,7 @@ const BreadcrumbLink = React.forwardRef<
 		asChild?: boolean;
 	}
 >(({ asChild, className, ...props }, ref) => {
-	const Comp = asChild ? Slot : "a";
+	const Comp = asChild ? Slot : Link;
 
 	return (
 		<Comp

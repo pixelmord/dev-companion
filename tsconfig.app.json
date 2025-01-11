@@ -22,7 +22,7 @@
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["./src/*"],
-			"~convex": ["./convex"]
+			"@convex-server/*": ["./convex/*"]
 		}
 	},
 	"include": ["src"]

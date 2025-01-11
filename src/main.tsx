@@ -5,7 +5,11 @@ import { ConvexReactClient } from "convex/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import { RouterProvider, createRouter } from "@tanstack/react-router";
+import {
+	ErrorComponent,
+	RouterProvider,
+	createRouter,
+} from "@tanstack/react-router";
 
 import type { DataModel } from "convex/_generated/dataModel";
 import { ThemeProvider } from "./components/ThemeProvider";
@@ -13,28 +17,14 @@ import Ripple from "./components/ui/ripple";
 import { useCurrentUser } from "./features/user/use-current-user";
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
+import { Spinner } from "./components/Spinner";
 
 export type AuthContext = {
 	isAuthenticated: boolean;
 	token: ReturnType<typeof useAuthToken>;
 	user?: DataModel["users"]["document"] | null;
 };
-// Create a new router instance
-const router = createRouter({
-	routeTree,
-	defaultPreload: "intent",
-	context: {
-		// biome-ignore lint/style/noNonNullAssertion: <explanation>
-		auth: undefined!, // This will be set after we wrap the app in an AuthProvider
-	},
-});
 
-// Register the router instance for type safety
-declare module "@tanstack/react-router" {
-	interface Register {
-		router: typeof router;
-	}
-}
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
 const convexQueryClient = new ConvexQueryClient(convex);
 const queryClient = new QueryClient({
@@ -46,7 +36,31 @@ const queryClient = new QueryClient({
 	},
 });
 convexQueryClient.connect(queryClient);
-
+// Create a new router instance
+const router = createRouter({
+	routeTree,
+	defaultPreload: "intent",
+	// Since we're using React Query, we don't want loader calls to ever be stale
+	// This will ensure that the loader is always called when the route is preloaded or visited
+	defaultPreloadStaleTime: 0,
+	defaultPendingComponent: () => (
+		<div className={"p-2 text-2xl"}>
+			<Spinner />
+		</div>
+	),
+	defaultErrorComponent: ({ error }) => <ErrorComponent error={error} />,
+	context: {
+		// biome-ignore lint/style/noNonNullAssertion: <explanation>
+		auth: undefined!, // This will be set after we wrap the app in an AuthProvider
+		queryClient,
+	},
+});
+// Register the router instance for type safety
+declare module "@tanstack/react-router" {
+	interface Register {
+		router: typeof router;
+	}
+}
 function App() {
 	const token = useAuthToken();
 	const isAuthenticated = !!token;
