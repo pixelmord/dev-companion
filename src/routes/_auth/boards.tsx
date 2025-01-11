@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { convexQuery } from "@convex-dev/react-query";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { api } from "../../../convex/_generated/api";
+import { api } from "@convex-server/_generated/api";
 
 export const Route = createFileRoute("/_auth/boards")({
 	component: RouteComponent,
