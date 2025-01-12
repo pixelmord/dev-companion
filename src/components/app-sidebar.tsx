@@ -9,6 +9,7 @@ import {
 	PieChart,
 	Settings2,
 	SquareTerminal,
+	type LucideIcon,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -24,7 +25,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useCurrentUser } from "@/features/user/use-current-user";
 import type { ComponentProps } from "react";
-import { ModeToggle } from "./ModeToggle";
+import { linkOptions, type LinkOptions } from "@tanstack/react-router";
 
 // This is sample data.
 const data = {
@@ -151,6 +152,57 @@ const data = {
 	],
 };
 
+const navigationGroups = {
+	dashboard: {
+		links: linkOptions([
+			{
+				to: "/dashboard",
+				label: "Dashboard",
+				activeOptions: { exact: true },
+			},
+		]),
+	},
+	platform: {
+		label: "Platform",
+		items: [
+			{
+				title: "Tools",
+				icon: Bot,
+				isOpen: true,
+				links: linkOptions([
+					{
+						to: "/tasks",
+						label: "Tasks",
+					},
+					{
+						to: "/boards",
+						label: "Boards",
+					},
+				]),
+			},
+		],
+	},
+};
+
+export type NavigationLink = LinkOptions &
+	Readonly<{
+		label: string;
+		icon?: LucideIcon;
+	}>;
+export type NavigationGroups = Record<
+	keyof typeof navigationGroups,
+	{
+		label?: string;
+		items?: {
+			title: string;
+			icon?: LucideIcon;
+			isOpen?: boolean;
+			links: Readonly<NavigationLink[]>;
+		}[];
+		links?: Readonly<NavigationLink[]>;
+	}
+>;
+
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
 	const { data: user } = useCurrentUser();
 	return (
@@ -159,7 +211,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
 				<TeamSwitcher teams={data.teams} />
 			</SidebarHeader>
 			<SidebarContent>
-				<NavMain items={data.navMain} />
+				<NavMain items={navigationGroups} />
 				<NavProjects projects={data.projects} />
 			</SidebarContent>
 			<SidebarFooter>{!!user && <NavUser user={user} />}</SidebarFooter>
