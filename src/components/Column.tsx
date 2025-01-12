@@ -1,19 +1,19 @@
 import { forwardRef, useCallback, useMemo, useRef, useState } from "react";
-import invariant from "tiny-invariant";
 import { twMerge } from "tailwind-merge";
+import invariant from "tiny-invariant";
 
 import { flushSync } from "react-dom";
 
+import { CONTENT_TYPES, type RenderedItem } from "@/types";
 import { Icon } from "../icons/icons";
 import {
 	useDeleteColumnMutation,
 	useUpdateCardMutation,
 	useUpdateColumnMutation,
 } from "../queries";
+import { Card } from "./Card";
 import { EditableText } from "./EditableText";
 import { NewCard } from "./NewCard";
-import { Card } from "./Card";
-import { CONTENT_TYPES, type RenderedItem } from "@/types";
 
 interface ColumnProps {
 	name: string;
@@ -154,7 +154,7 @@ export const Column = forwardRef<HTMLDivElement, ColumnProps>(
 					{...(!items.length ? cardDndProps : {})}
 					className={twMerge(
 						"flex-shrink-0 flex flex-col max-h-full w-80 border-slate-400 rounded-xl shadow-sm shadow-slate-400 bg-slate-100 relative",
-						acceptCardDrop && `outline outline-2 outline-red-500`,
+						acceptCardDrop && "outline outline-2 outline-red-500",
 					)}
 				>
 					<div className="p-2" {...(items.length ? cardDndProps : {})}>

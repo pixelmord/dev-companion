@@ -12,12 +12,12 @@ import {
 } from "@tanstack/react-router";
 
 import type { DataModel } from "convex/_generated/dataModel";
+import { Spinner } from "./components/Spinner";
 import { ThemeProvider } from "./components/ThemeProvider";
 import Ripple from "./components/ui/ripple";
 import { useCurrentUser } from "./features/user/use-current-user";
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
-import { Spinner } from "./components/Spinner";
 
 export type AuthContext = {
 	isAuthenticated: boolean;

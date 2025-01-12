@@ -1,3 +1,4 @@
+import { ContentLayout } from "@/components/layout/content-layout";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";
 import { useState } from "react";
@@ -5,7 +6,6 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { ContentLayout } from "@/components/layout/content-layout";
 
 export const Route = createFileRoute("/_auth/tasks")({
 	component: Tasks,

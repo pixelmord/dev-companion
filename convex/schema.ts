@@ -1,6 +1,6 @@
 import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
-import { v, type Infer } from "convex/values";
+import { type Infer, v } from "convex/values";
 const schema = defineSchema({
 	...authTables,
 	tasks: defineTable({

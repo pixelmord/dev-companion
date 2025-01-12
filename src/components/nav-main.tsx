@@ -1,4 +1,4 @@
-import { ChevronRight, type LucideIcon } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 import {
 	Collapsible,
@@ -16,8 +16,8 @@ import {
 	SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import { Link } from "@tanstack/react-router";
-import type { NavigationGroups } from "./app-sidebar";
 import { objectKeys } from "ts-extras";
+import type { NavigationGroups } from "./app-sidebar";
 
 export function NavMain({
 	items,

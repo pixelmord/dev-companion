@@ -1,11 +1,11 @@
 import { useRef } from "react";
 import invariant from "tiny-invariant";
 
-import { ItemMutationFields } from "../types";
-import { useCreateItemMutation } from "../queries";
-import { itemSchema } from "../db/schema";
-import { SaveButton } from "@/components/SaveButton";
 import { CancelButton } from "@/components/CancelButton";
+import { SaveButton } from "@/components/SaveButton";
+import { itemSchema } from "../db/schema";
+import { useCreateItemMutation } from "../queries";
+import { ItemMutationFields } from "../types";
 
 export function NewCard({
 	columnId,
@@ -57,7 +57,6 @@ export function NewCard({
 			/>
 
 			<textarea
-				autoFocus
 				required
 				ref={textAreaRef}
 				name={ItemMutationFields.title.name}
@@ -75,7 +74,7 @@ export function NewCard({
 				}}
 				onChange={(event) => {
 					const el = event.currentTarget;
-					el.style.height = el.scrollHeight + "px";
+					el.style.height = `${el.scrollHeight}px`;
 				}}
 			/>
 			<div className="flex justify-between">

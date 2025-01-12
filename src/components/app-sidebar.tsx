@@ -5,11 +5,11 @@ import {
 	Command,
 	Frame,
 	GalleryVerticalEnd,
+	type LucideIcon,
 	Map as MapIcon,
 	PieChart,
 	Settings2,
 	SquareTerminal,
-	type LucideIcon,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -24,8 +24,8 @@ import {
 	SidebarRail,
 } from "@/components/ui/sidebar";
 import { useCurrentUser } from "@/features/user/use-current-user";
+import { type LinkOptions, linkOptions } from "@tanstack/react-router";
 import type { ComponentProps } from "react";
-import { linkOptions, type LinkOptions } from "@tanstack/react-router";
 
 // This is sample data.
 const data = {
