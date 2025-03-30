@@ -67,6 +67,7 @@
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "^4.0.6",
     "tailwindcss-animate": "^1.0.7",
+    "tiny-invariant": "^1.3.3",
     "ts-extras": "^0.13.0",
     "vinxi": "^0.5.3",
     "vite-tsconfig-paths": "^5.1.4",
