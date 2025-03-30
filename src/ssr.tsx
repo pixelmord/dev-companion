@@ -6,7 +6,7 @@ import {
 
 import { createRouter } from "./router";
 
-import { createClerkHandler } from "@clerk/tanstack-start/server";
+import { createClerkHandler } from "@clerk/tanstack-react-start/server";
 
 export default createClerkHandler(
 	createStartHandler({

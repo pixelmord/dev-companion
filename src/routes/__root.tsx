@@ -1,4 +1,4 @@
-import { ClerkProvider, useAuth } from "@clerk/tanstack-start";
+import { ClerkProvider, useAuth } from "@clerk/tanstack-react-start";
 import {
 	HeadContent,
 	Outlet,
@@ -17,7 +17,7 @@ import appCss from "../styles.css?url";
 import { DefaultCatchBoundary } from "@/components/DefaultCatchBoundary";
 import { NotFound } from "@/components/NotFound";
 
-import { getAuth } from "@clerk/tanstack-start/server";
+import { getAuth } from "@clerk/tanstack-react-start/server";
 import type { ConvexQueryClient } from "@convex-dev/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
@@ -91,8 +91,6 @@ function RootComponent() {
 		<ClerkProvider>
 			<ConvexProviderWithClerk client={context.convexClient} useAuth={useAuth}>
 				<RootDocument>
-					<Header />
-
 					<Outlet />
 					<TanStackRouterDevtools />
 

@@ -11,13 +11,18 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as AuthedImport } from './routes/_authed'
 import { Route as IndexImport } from './routes/index'
+import { Route as SignInSplatImport } from './routes/sign-in.$'
 import { Route as ExampleChatImport } from './routes/example.chat'
 import { Route as DemoTanstackQueryImport } from './routes/demo.tanstack-query'
 import { Route as DemoTableImport } from './routes/demo.table'
 import { Route as DemoStoreImport } from './routes/demo.store'
 import { Route as DemoConvexImport } from './routes/demo.convex'
 import { Route as DemoClerkImport } from './routes/demo.clerk'
+import { Route as AuthedTasksImport } from './routes/_authed/tasks'
+import { Route as AuthedDashboardImport } from './routes/_authed/dashboard'
+import { Route as AuthedBoardsImport } from './routes/_authed/boards'
 import { Route as ExampleGuitarsIndexImport } from './routes/example.guitars/index'
 import { Route as ExampleGuitarsGuitarIdImport } from './routes/example.guitars/$guitarId'
 import { Route as DemoStartServerFuncsImport } from './routes/demo.start.server-funcs'
@@ -25,12 +30,24 @@ import { Route as DemoStartApiRequestImport } from './routes/demo.start.api-requ
 import { Route as DemoSentryTestingImport } from './routes/demo.sentry.testing'
 import { Route as DemoFormSimpleImport } from './routes/demo.form.simple'
 import { Route as DemoFormAddressImport } from './routes/demo.form.address'
+import { Route as AuthedBoardsBoardIdImport } from './routes/_authed/boards.$boardId'
 
 // Create/Update Routes
+
+const AuthedRoute = AuthedImport.update({
+  id: '/_authed',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SignInSplatRoute = SignInSplatImport.update({
+  id: '/sign-in/$',
+  path: '/sign-in/$',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -68,6 +85,24 @@ const DemoClerkRoute = DemoClerkImport.update({
   id: '/demo/clerk',
   path: '/demo/clerk',
   getParentRoute: () => rootRoute,
+} as any)
+
+const AuthedTasksRoute = AuthedTasksImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AuthedRoute,
+} as any)
+
+const AuthedDashboardRoute = AuthedDashboardImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthedRoute,
+} as any)
+
+const AuthedBoardsRoute = AuthedBoardsImport.update({
+  id: '/boards',
+  path: '/boards',
+  getParentRoute: () => AuthedRoute,
 } as any)
 
 const ExampleGuitarsIndexRoute = ExampleGuitarsIndexImport.update({
@@ -112,6 +147,12 @@ const DemoFormAddressRoute = DemoFormAddressImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const AuthedBoardsBoardIdRoute = AuthedBoardsBoardIdImport.update({
+  id: '/$boardId',
+  path: '/$boardId',
+  getParentRoute: () => AuthedBoardsRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -122,6 +163,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
+    }
+    '/_authed': {
+      id: '/_authed'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthedImport
+      parentRoute: typeof rootRoute
+    }
+    '/_authed/boards': {
+      id: '/_authed/boards'
+      path: '/boards'
+      fullPath: '/boards'
+      preLoaderRoute: typeof AuthedBoardsImport
+      parentRoute: typeof AuthedImport
+    }
+    '/_authed/dashboard': {
+      id: '/_authed/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthedDashboardImport
+      parentRoute: typeof AuthedImport
+    }
+    '/_authed/tasks': {
+      id: '/_authed/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof AuthedTasksImport
+      parentRoute: typeof AuthedImport
     }
     '/demo/clerk': {
       id: '/demo/clerk'
@@ -164,6 +233,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/example/chat'
       preLoaderRoute: typeof ExampleChatImport
       parentRoute: typeof rootRoute
+    }
+    '/sign-in/$': {
+      id: '/sign-in/$'
+      path: '/sign-in/$'
+      fullPath: '/sign-in/$'
+      preLoaderRoute: typeof SignInSplatImport
+      parentRoute: typeof rootRoute
+    }
+    '/_authed/boards/$boardId': {
+      id: '/_authed/boards/$boardId'
+      path: '/$boardId'
+      fullPath: '/boards/$boardId'
+      preLoaderRoute: typeof AuthedBoardsBoardIdImport
+      parentRoute: typeof AuthedBoardsImport
     }
     '/demo/form/address': {
       id: '/demo/form/address'
@@ -219,14 +302,47 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
+interface AuthedBoardsRouteChildren {
+  AuthedBoardsBoardIdRoute: typeof AuthedBoardsBoardIdRoute
+}
+
+const AuthedBoardsRouteChildren: AuthedBoardsRouteChildren = {
+  AuthedBoardsBoardIdRoute: AuthedBoardsBoardIdRoute,
+}
+
+const AuthedBoardsRouteWithChildren = AuthedBoardsRoute._addFileChildren(
+  AuthedBoardsRouteChildren,
+)
+
+interface AuthedRouteChildren {
+  AuthedBoardsRoute: typeof AuthedBoardsRouteWithChildren
+  AuthedDashboardRoute: typeof AuthedDashboardRoute
+  AuthedTasksRoute: typeof AuthedTasksRoute
+}
+
+const AuthedRouteChildren: AuthedRouteChildren = {
+  AuthedBoardsRoute: AuthedBoardsRouteWithChildren,
+  AuthedDashboardRoute: AuthedDashboardRoute,
+  AuthedTasksRoute: AuthedTasksRoute,
+}
+
+const AuthedRouteWithChildren =
+  AuthedRoute._addFileChildren(AuthedRouteChildren)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '': typeof AuthedRouteWithChildren
+  '/boards': typeof AuthedBoardsRouteWithChildren
+  '/dashboard': typeof AuthedDashboardRoute
+  '/tasks': typeof AuthedTasksRoute
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/example/chat': typeof ExampleChatRoute
+  '/sign-in/$': typeof SignInSplatRoute
+  '/boards/$boardId': typeof AuthedBoardsBoardIdRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
   '/demo/sentry/testing': typeof DemoSentryTestingRoute
@@ -238,12 +354,18 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '': typeof AuthedRouteWithChildren
+  '/boards': typeof AuthedBoardsRouteWithChildren
+  '/dashboard': typeof AuthedDashboardRoute
+  '/tasks': typeof AuthedTasksRoute
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/example/chat': typeof ExampleChatRoute
+  '/sign-in/$': typeof SignInSplatRoute
+  '/boards/$boardId': typeof AuthedBoardsBoardIdRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
   '/demo/sentry/testing': typeof DemoSentryTestingRoute
@@ -256,12 +378,18 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/_authed': typeof AuthedRouteWithChildren
+  '/_authed/boards': typeof AuthedBoardsRouteWithChildren
+  '/_authed/dashboard': typeof AuthedDashboardRoute
+  '/_authed/tasks': typeof AuthedTasksRoute
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/example/chat': typeof ExampleChatRoute
+  '/sign-in/$': typeof SignInSplatRoute
+  '/_authed/boards/$boardId': typeof AuthedBoardsBoardIdRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
   '/demo/sentry/testing': typeof DemoSentryTestingRoute
@@ -275,12 +403,18 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | ''
+    | '/boards'
+    | '/dashboard'
+    | '/tasks'
     | '/demo/clerk'
     | '/demo/convex'
     | '/demo/store'
     | '/demo/table'
     | '/demo/tanstack-query'
     | '/example/chat'
+    | '/sign-in/$'
+    | '/boards/$boardId'
     | '/demo/form/address'
     | '/demo/form/simple'
     | '/demo/sentry/testing'
@@ -291,12 +425,18 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | ''
+    | '/boards'
+    | '/dashboard'
+    | '/tasks'
     | '/demo/clerk'
     | '/demo/convex'
     | '/demo/store'
     | '/demo/table'
     | '/demo/tanstack-query'
     | '/example/chat'
+    | '/sign-in/$'
+    | '/boards/$boardId'
     | '/demo/form/address'
     | '/demo/form/simple'
     | '/demo/sentry/testing'
@@ -307,12 +447,18 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_authed'
+    | '/_authed/boards'
+    | '/_authed/dashboard'
+    | '/_authed/tasks'
     | '/demo/clerk'
     | '/demo/convex'
     | '/demo/store'
     | '/demo/table'
     | '/demo/tanstack-query'
     | '/example/chat'
+    | '/sign-in/$'
+    | '/_authed/boards/$boardId'
     | '/demo/form/address'
     | '/demo/form/simple'
     | '/demo/sentry/testing'
@@ -325,12 +471,14 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthedRoute: typeof AuthedRouteWithChildren
   DemoClerkRoute: typeof DemoClerkRoute
   DemoConvexRoute: typeof DemoConvexRoute
   DemoStoreRoute: typeof DemoStoreRoute
   DemoTableRoute: typeof DemoTableRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
   ExampleChatRoute: typeof ExampleChatRoute
+  SignInSplatRoute: typeof SignInSplatRoute
   DemoFormAddressRoute: typeof DemoFormAddressRoute
   DemoFormSimpleRoute: typeof DemoFormSimpleRoute
   DemoSentryTestingRoute: typeof DemoSentryTestingRoute
@@ -342,12 +490,14 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthedRoute: AuthedRouteWithChildren,
   DemoClerkRoute: DemoClerkRoute,
   DemoConvexRoute: DemoConvexRoute,
   DemoStoreRoute: DemoStoreRoute,
   DemoTableRoute: DemoTableRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
   ExampleChatRoute: ExampleChatRoute,
+  SignInSplatRoute: SignInSplatRoute,
   DemoFormAddressRoute: DemoFormAddressRoute,
   DemoFormSimpleRoute: DemoFormSimpleRoute,
   DemoSentryTestingRoute: DemoSentryTestingRoute,
@@ -368,12 +518,14 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/_authed",
         "/demo/clerk",
         "/demo/convex",
         "/demo/store",
         "/demo/table",
         "/demo/tanstack-query",
         "/example/chat",
+        "/sign-in/$",
         "/demo/form/address",
         "/demo/form/simple",
         "/demo/sentry/testing",
@@ -385,6 +537,29 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/_authed": {
+      "filePath": "_authed.tsx",
+      "children": [
+        "/_authed/boards",
+        "/_authed/dashboard",
+        "/_authed/tasks"
+      ]
+    },
+    "/_authed/boards": {
+      "filePath": "_authed/boards.tsx",
+      "parent": "/_authed",
+      "children": [
+        "/_authed/boards/$boardId"
+      ]
+    },
+    "/_authed/dashboard": {
+      "filePath": "_authed/dashboard.tsx",
+      "parent": "/_authed"
+    },
+    "/_authed/tasks": {
+      "filePath": "_authed/tasks.tsx",
+      "parent": "/_authed"
     },
     "/demo/clerk": {
       "filePath": "demo.clerk.tsx"
@@ -403,6 +578,13 @@ export const routeTree = rootRoute
     },
     "/example/chat": {
       "filePath": "example.chat.tsx"
+    },
+    "/sign-in/$": {
+      "filePath": "sign-in.$.tsx"
+    },
+    "/_authed/boards/$boardId": {
+      "filePath": "_authed/boards.$boardId.tsx",
+      "parent": "/_authed/boards"
     },
     "/demo/form/address": {
       "filePath": "demo.form.address.tsx"
