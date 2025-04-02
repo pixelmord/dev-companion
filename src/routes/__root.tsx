@@ -54,6 +54,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 			{
 				title: "TanStack Start Starter",
 			},
+			{},
 		],
 		links: [
 			{
