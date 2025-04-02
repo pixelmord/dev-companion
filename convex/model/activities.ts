@@ -23,21 +23,26 @@ type RecordActivityArgs = {
   teamId?: Id<"teams">;
 };
 
+// Type for pagination options
+type PaginationOpts = {
+  numItems: number;
+  cursor: string | null;
+};
+
 // Get activities by project
 export async function getActivitiesByProject(
   ctx: QueryCtx,
   projectId: Id<"projects">,
   limit?: number
 ) {
-  let query = ctx.db
+  const query = ctx.db
     .query("activities")
     .withIndex("by_project", (q) => q.eq("projectId", projectId))
     .order("desc");
 
-  if (limit) {
-    query = query.take(limit);
+  if (limit !== undefined) {
+    return await query.take(limit);
   }
-
   return await query.collect();
 }
 
@@ -47,15 +52,14 @@ export async function getActivitiesByTeam(
   teamId: Id<"teams">,
   limit?: number
 ) {
-  let query = ctx.db
+  const query = ctx.db
     .query("activities")
     .withIndex("by_team", (q) => q.eq("teamId", teamId))
     .order("desc");
 
-  if (limit) {
-    query = query.take(limit);
+  if (limit !== undefined) {
+    return await query.take(limit);
   }
-
   return await query.collect();
 }
 
@@ -65,15 +69,14 @@ export async function getActivitiesByUser(
   userId: Id<"users">,
   limit?: number
 ) {
-  let query = ctx.db
+  const query = ctx.db
     .query("activities")
     .withIndex("by_user", (q) => q.eq("performedBy", userId))
     .order("desc");
 
-  if (limit) {
-    query = query.take(limit);
+  if (limit !== undefined) {
+    return await query.take(limit);
   }
-
   return await query.collect();
 }
 
@@ -84,17 +87,16 @@ export async function getActivitiesByEntity(
   entityId: Id<"projects"> | Id<"resources"> | Id<"teams"> | Id<"users">,
   limit?: number
 ) {
-  let query = ctx.db
+  const query = ctx.db
     .query("activities")
     .withIndex("by_entity", (q) =>
       q.eq("entityType", entityType).eq("entityId", entityId)
     )
     .order("desc");
 
-  if (limit) {
-    query = query.take(limit);
+  if (limit !== undefined) {
+    return await query.take(limit);
   }
-
   return await query.collect();
 }
 
@@ -105,6 +107,12 @@ export async function recordActivity(
 ) {
   const { type, entityType, entityId, details, projectId, teamId } = args;
 
+  // Get the authenticated user ID
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+
   // Create activity record
   const activityId = await ctx.db.insert("activities", {
     type,
@@ -113,9 +121,48 @@ export async function recordActivity(
     details,
     projectId,
     teamId,
-    performedBy: ctx.auth.subject as Id<"users">,
+    performedBy: identity.subject as Id<"users">,
     performedAt: Date.now(),
   });
 
   return activityId;
+}
+
+// Get paginated activities by project
+export async function getActivitiesByProjectPaginated(
+  ctx: QueryCtx,
+  projectId: Id<"projects">,
+  paginationOpts: PaginationOpts
+) {
+  return await ctx.db
+    .query("activities")
+    .withIndex("by_project", (q) => q.eq("projectId", projectId))
+    .order("desc")
+    .paginate(paginationOpts);
+}
+
+// Get paginated activities by team
+export async function getActivitiesByTeamPaginated(
+  ctx: QueryCtx,
+  teamId: Id<"teams">,
+  paginationOpts: PaginationOpts
+) {
+  return await ctx.db
+    .query("activities")
+    .withIndex("by_team", (q) => q.eq("teamId", teamId))
+    .order("desc")
+    .paginate(paginationOpts);
+}
+
+// Get paginated activities by user
+export async function getActivitiesByUserPaginated(
+  ctx: QueryCtx,
+  userId: Id<"users">,
+  paginationOpts: PaginationOpts
+) {
+  return await ctx.db
+    .query("activities")
+    .withIndex("by_user", (q) => q.eq("performedBy", userId))
+    .order("desc")
+    .paginate(paginationOpts);
 }

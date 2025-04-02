@@ -55,6 +55,12 @@ export async function createProject(
     throw new Error("Team not found");
   }
 
+  // Get the authenticated user ID
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+
   // Create project with default settings
   const projectId = await ctx.db.insert("projects", {
     name,
@@ -67,7 +73,7 @@ export async function createProject(
       notificationsEnabled: true,
       defaultResourceVisibility: "team",
     },
-    createdBy: ctx.auth.subject as Id<"users">,
+    createdBy: identity.subject as Id<"users">,
     createdAt: Date.now(),
     updatedAt: Date.now(),
   });

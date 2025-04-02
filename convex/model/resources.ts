@@ -45,6 +45,14 @@ type UpdateResourceArgs = Partial<{
   content: ResourceContent;
 }>;
 
+// Type for search args
+type SearchResourcesArgs = {
+  searchTerm: string;
+  projectId?: Id<"projects">;
+  type?: "document" | "codeSnippet" | "externalLink" | "feed";
+  limit?: number;
+};
+
 // Get a resource by ID
 export async function getResource(
   ctx: QueryCtx,
@@ -91,6 +99,12 @@ export async function createResource(
     throw new Error("Project not found");
   }
 
+  // Get the authenticated user ID
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+
   // Create resource
   const resourceId = await ctx.db.insert("resources", {
     name,
@@ -99,7 +113,7 @@ export async function createResource(
     projectId,
     visibility,
     content,
-    createdBy: ctx.auth.subject as Id<"users">,
+    createdBy: identity.subject as Id<"users">,
     createdAt: Date.now(),
     updatedAt: Date.now(),
   });
@@ -126,4 +140,81 @@ export async function updateResource(
   });
 
   return id;
+}
+
+// Search resources
+export async function searchResources(
+  ctx: QueryCtx,
+  args: SearchResourcesArgs
+) {
+  const { searchTerm, projectId, type, limit } = args;
+
+  // Start with search query
+  let query = ctx.db
+    .query("resources")
+    .withSearchIndex("search", (q) => {
+      let search = q.search("name", searchTerm);
+
+      if (projectId) {
+        search = search.eq("projectId", projectId);
+      }
+
+      if (type) {
+        search = search.eq("type", type);
+      }
+
+      return search;
+    });
+
+  // Add limit if specified
+  if (limit !== undefined) {
+    return await query.take(limit);
+  }
+
+  return await query.collect();
+}
+
+// Share a resource
+export async function shareResource(
+  ctx: MutationCtx,
+  resourceId: Id<"resources">,
+  visibility: "public" | "team" | "private"
+) {
+  // Verify resource exists
+  const resource = await ctx.db.get(resourceId);
+  if (!resource) {
+    throw new Error("Resource not found");
+  }
+
+  // Get the authenticated user ID
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+
+  // Update visibility
+  await ctx.db.patch(resourceId, {
+    visibility,
+    updatedAt: Date.now(),
+  });
+
+  // Record share activity
+  await ctx.db.insert("activities", {
+    type: "share",
+    entityType: "resource",
+    entityId: resourceId,
+    details: {
+      summary: `Changed resource visibility to ${visibility}`,
+      changes: [{
+        field: "visibility",
+        oldValue: resource.visibility,
+        newValue: visibility,
+      }],
+    },
+    projectId: resource.projectId,
+    performedBy: identity.subject as Id<"users">,
+    performedAt: Date.now(),
+  });
+
+  return resourceId;
 }

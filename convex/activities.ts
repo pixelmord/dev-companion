@@ -166,3 +166,60 @@ export const recordActivity = mutation({
     return await ActivityModel.recordActivity(ctx, args);
   },
 });
+
+// Query to get paginated activities for a project
+export const getProjectActivitiesPaginated = query({
+  args: {
+    projectId: v.id("projects"),
+    paginationOpts: v.object({
+      numItems: v.number(),
+      cursor: v.union(v.string(), v.null()),
+    }),
+  },
+  returns: v.object({
+    page: v.array(activityValidator),
+    isDone: v.boolean(),
+    continueCursor: v.union(v.string(), v.null()),
+  }),
+  handler: async (ctx, args) => {
+    return await ActivityModel.getActivitiesByProjectPaginated(ctx, args.projectId, args.paginationOpts);
+  },
+});
+
+// Query to get paginated activities for a team
+export const getTeamActivitiesPaginated = query({
+  args: {
+    teamId: v.id("teams"),
+    paginationOpts: v.object({
+      numItems: v.number(),
+      cursor: v.union(v.string(), v.null()),
+    }),
+  },
+  returns: v.object({
+    page: v.array(activityValidator),
+    isDone: v.boolean(),
+    continueCursor: v.union(v.string(), v.null()),
+  }),
+  handler: async (ctx, args) => {
+    return await ActivityModel.getActivitiesByTeamPaginated(ctx, args.teamId, args.paginationOpts);
+  },
+});
+
+// Query to get paginated activities for a user
+export const getUserActivitiesPaginated = query({
+  args: {
+    userId: v.id("users"),
+    paginationOpts: v.object({
+      numItems: v.number(),
+      cursor: v.union(v.string(), v.null()),
+    }),
+  },
+  returns: v.object({
+    page: v.array(activityValidator),
+    isDone: v.boolean(),
+    continueCursor: v.union(v.string(), v.null()),
+  }),
+  handler: async (ctx, args) => {
+    return await ActivityModel.getActivitiesByUserPaginated(ctx, args.userId, args.paginationOpts);
+  },
+});

@@ -67,7 +67,11 @@ export const resourcesTables = {
   })
     .index("by_project", ["projectId"])
     .index("by_type", ["type"])
-    .index("by_project_and_type", ["projectId", "type"]),
+    .index("by_project_and_type", ["projectId", "type"])
+    .searchIndex("search", {
+      searchField: "name",
+      filterFields: ["projectId", "type"],
+    }),
 };
 
 const resourceValidator = resourcesTables.resources.validator;
@@ -158,6 +162,25 @@ export const getResourcesByType = query({
   },
 });
 
+// Query to search resources
+export const searchResources = query({
+  args: {
+    searchTerm: v.string(),
+    projectId: v.optional(v.id("projects")),
+    type: v.optional(v.union(
+      v.literal("document"),
+      v.literal("codeSnippet"),
+      v.literal("externalLink"),
+      v.literal("feed")
+    )),
+    limit: v.optional(v.number()),
+  },
+  returns: v.array(resourceValidator),
+  handler: async (ctx, args) => {
+    return await ResourceModel.searchResources(ctx, args);
+  },
+});
+
 // Mutation to create a new resource
 export const createResource = mutation({
   args: createResourceSchema,
@@ -216,5 +239,21 @@ export const updateResource = mutation({
   handler: async (ctx, args) => {
     const { id, ...updates } = args;
     return await ResourceModel.updateResource(ctx, id, updates);
+  },
+});
+
+// Mutation to share a resource
+export const shareResource = mutation({
+  args: {
+    resourceId: v.id("resources"),
+    visibility: v.union(
+      v.literal("public"),
+      v.literal("team"),
+      v.literal("private")
+    ),
+  },
+  returns: v.id("resources"),
+  handler: async (ctx, args) => {
+    return await ResourceModel.shareResource(ctx, args.resourceId, args.visibility);
   },
 });
