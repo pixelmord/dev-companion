@@ -1,6 +1,7 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { paginationOptsValidator } from "convex/server";
 import * as ResourceModel from "./model/resources";
 
 export const resourcesTables = {
@@ -106,6 +107,76 @@ export const resourcesTables = {
     .index("by_resource", ["resourceId"])
     .index("by_user", ["userId"])
     .index("by_recent", ["accessedAt"]),
+
+  resourceVersions: defineTable({
+    resourceId: v.id("resources"),
+    versionNumber: v.number(),
+    content: v.union(
+      // Document
+      v.object({
+        type: v.literal("document"),
+        content: v.string(),
+        format: v.string(),
+        version: v.number(),
+      }),
+      // Code Snippet
+      v.object({
+        type: v.literal("codeSnippet"),
+        code: v.string(),
+        language: v.string(),
+        highlightOptions: v.optional(v.object({
+          theme: v.string(),
+          lineNumbers: v.boolean(),
+        })),
+      }),
+      // External Link
+      v.object({
+        type: v.literal("externalLink"),
+        url: v.string(),
+        favicon: v.optional(v.string()),
+        lastChecked: v.number(),
+      }),
+      // Feed
+      v.object({
+        type: v.literal("feed"),
+        source: v.string(),
+        refreshFrequency: v.number(),
+        lastUpdated: v.number(),
+      })
+    ),
+    changes: v.array(v.object({
+      field: v.string(),
+      oldValue: v.any(),
+      newValue: v.any(),
+    })),
+    createdBy: v.id("users"),
+    createdAt: v.number(),
+    message: v.optional(v.string()),
+  })
+    .index("by_resource", ["resourceId"])
+    .index("by_resource_and_version", ["resourceId", "versionNumber"]),
+
+  resourceComments: defineTable({
+    resourceId: v.id("resources"),
+    content: v.string(),
+    createdBy: v.id("users"),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+    parentCommentId: v.optional(v.id("resourceComments")),
+    isResolved: v.boolean(),
+    resolvedBy: v.optional(v.id("users")),
+    resolvedAt: v.optional(v.number()),
+    // For threaded discussions
+    path: v.array(v.id("resourceComments")),
+    depth: v.number(),
+  })
+    .index("by_resource", ["resourceId"])
+    .index("by_parent", ["parentCommentId"])
+    .index("by_resource_and_path", ["resourceId", "path"])
+    .searchIndex("search", {
+      searchField: "content",
+      filterFields: ["resourceId", "isResolved"],
+    }),
 };
 
 const resourceValidator = resourcesTables.resources.validator;
@@ -268,11 +339,12 @@ export const updateResource = mutation({
         lastUpdated: v.number(),
       })
     )),
+    versionMessage: v.optional(v.string()),
   }),
   returns: v.id("resources"),
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
-    return await ResourceModel.updateResource(ctx, id, updates);
+    const { id, versionMessage, ...updates } = args;
+    return await ResourceModel.updateResource(ctx, id, updates, versionMessage);
   },
 });
 
@@ -402,5 +474,310 @@ export const getResourceAccessHistory = query({
   })),
   handler: async (ctx, args) => {
     return await ResourceModel.getResourceAccessHistory(ctx, args.resourceId, args.limit);
+  },
+});
+
+// Query to get paginated resources for a project
+export const getProjectResourcesPaginated = query({
+  args: {
+    projectId: v.id("projects"),
+    paginationOpts: paginationOptsValidator,
+  },
+  returns: v.object({
+    page: v.array(resourceValidator),
+    isDone: v.boolean(),
+    continueCursor: v.union(v.string(), v.null()),
+  }),
+  handler: async (ctx, args) => {
+    return await ResourceModel.getResourcesByProjectPaginated(
+      ctx,
+      args.projectId,
+      args.paginationOpts
+    );
+  },
+});
+
+// Query to get paginated resources by type
+export const getResourcesByTypePaginated = query({
+  args: {
+    projectId: v.id("projects"),
+    type: v.union(
+      v.literal("document"),
+      v.literal("codeSnippet"),
+      v.literal("externalLink"),
+      v.literal("feed")
+    ),
+    paginationOpts: paginationOptsValidator,
+  },
+  returns: v.object({
+    page: v.array(resourceValidator),
+    isDone: v.boolean(),
+    continueCursor: v.union(v.string(), v.null()),
+  }),
+  handler: async (ctx, args) => {
+    return await ResourceModel.getResourcesByTypePaginated(
+      ctx,
+      args.projectId,
+      args.type,
+      args.paginationOpts
+    );
+  },
+});
+
+// Query to get paginated resources by tag
+export const getResourcesByTagPaginated = query({
+  args: {
+    tag: v.string(),
+    projectId: v.optional(v.id("projects")),
+    paginationOpts: paginationOptsValidator,
+  },
+  returns: v.object({
+    page: v.array(resourceValidator),
+    isDone: v.boolean(),
+    continueCursor: v.union(v.string(), v.null()),
+  }),
+  handler: async (ctx, args) => {
+    return await ResourceModel.getResourcesByTagPaginated(
+      ctx,
+      args.tag,
+      args.projectId,
+      args.paginationOpts
+    );
+  },
+});
+
+// Query to get paginated search results
+export const searchResourcesPaginated = query({
+  args: {
+    searchTerm: v.string(),
+    projectId: v.optional(v.id("projects")),
+    type: v.optional(v.union(
+      v.literal("document"),
+      v.literal("codeSnippet"),
+      v.literal("externalLink"),
+      v.literal("feed")
+    )),
+    paginationOpts: paginationOptsValidator,
+  },
+  returns: v.object({
+    page: v.array(resourceValidator),
+    isDone: v.boolean(),
+    continueCursor: v.union(v.string(), v.null()),
+  }),
+  handler: async (ctx, args) => {
+    const { paginationOpts, ...searchArgs } = args;
+    return await ResourceModel.searchResourcesPaginated(ctx, {
+      ...searchArgs,
+      paginationOpts,
+    });
+  },
+});
+
+// Query to get paginated favorite resources
+export const getFavoriteResourcesPaginated = query({
+  args: {
+    userId: v.id("users"),
+    paginationOpts: paginationOptsValidator,
+  },
+  returns: v.object({
+    page: v.array(resourceValidator),
+    isDone: v.boolean(),
+    continueCursor: v.union(v.string(), v.null()),
+  }),
+  handler: async (ctx, args) => {
+    return await ResourceModel.getFavoriteResourcesPaginated(
+      ctx,
+      args.userId,
+      args.paginationOpts
+    );
+  },
+});
+
+// Query to get paginated access history
+export const getResourceAccessHistoryPaginated = query({
+  args: {
+    resourceId: v.id("resources"),
+    paginationOpts: paginationOptsValidator,
+  },
+  returns: v.object({
+    page: v.array(v.object({
+      _id: v.id("resourceAccess"),
+      _creationTime: v.number(),
+      resourceId: v.id("resources"),
+      userId: v.id("users"),
+      accessType: v.union(
+        v.literal("view"),
+        v.literal("edit"),
+        v.literal("share"),
+        v.literal("download")
+      ),
+      accessedAt: v.number(),
+    })),
+    isDone: v.boolean(),
+    continueCursor: v.union(v.string(), v.null()),
+  }),
+  handler: async (ctx, args) => {
+    return await ResourceModel.getResourceAccessHistoryPaginated(
+      ctx,
+      args.resourceId,
+      args.paginationOpts
+    );
+  },
+});
+
+// Query to get resource versions
+export const getResourceVersions = query({
+  args: {
+    resourceId: v.id("resources"),
+    paginationOpts: paginationOptsValidator,
+  },
+  returns: v.object({
+    page: v.array(v.object({
+      _id: v.id("resourceVersions"),
+      _creationTime: v.number(),
+      resourceId: v.id("resources"),
+      versionNumber: v.number(),
+      content: v.union(
+        // Document
+        v.object({
+          type: v.literal("document"),
+          content: v.string(),
+          format: v.string(),
+          version: v.number(),
+        }),
+        // Code Snippet
+        v.object({
+          type: v.literal("codeSnippet"),
+          code: v.string(),
+          language: v.string(),
+          highlightOptions: v.optional(v.object({
+            theme: v.string(),
+            lineNumbers: v.boolean(),
+          })),
+        }),
+        // External Link
+        v.object({
+          type: v.literal("externalLink"),
+          url: v.string(),
+          favicon: v.optional(v.string()),
+          lastChecked: v.number(),
+        }),
+        // Feed
+        v.object({
+          type: v.literal("feed"),
+          source: v.string(),
+          refreshFrequency: v.number(),
+          lastUpdated: v.number(),
+        })
+      ),
+      changes: v.array(v.object({
+        field: v.string(),
+        oldValue: v.any(),
+        newValue: v.any(),
+      })),
+      createdBy: v.id("users"),
+      createdAt: v.number(),
+      message: v.optional(v.string()),
+    })),
+    isDone: v.boolean(),
+    continueCursor: v.union(v.string(), v.null()),
+  }),
+  handler: async (ctx, args) => {
+    return await ResourceModel.getResourceVersionsPaginated(
+      ctx,
+      args.resourceId,
+      args.paginationOpts
+    );
+  },
+});
+
+// Query to get a specific version
+export const getResourceVersion = query({
+  args: {
+    resourceId: v.id("resources"),
+    versionNumber: v.number(),
+  },
+  returns: v.union(resourcesTables.resourceVersions.validator, v.null()),
+  handler: async (ctx, args) => {
+    return await ResourceModel.getResourceVersion(
+      ctx,
+      args.resourceId,
+      args.versionNumber
+    );
+  },
+});
+
+// Query to get resource comments
+export const getResourceComments = query({
+  args: {
+    resourceId: v.id("resources"),
+    paginationOpts: paginationOptsValidator,
+  },
+  returns: v.object({
+    page: v.array(v.object({
+      _id: v.id("resourceComments"),
+      _creationTime: v.number(),
+      resourceId: v.id("resources"),
+      content: v.string(),
+      createdBy: v.id("users"),
+      createdAt: v.number(),
+      updatedAt: v.optional(v.number()),
+      parentCommentId: v.optional(v.id("resourceComments")),
+      isResolved: v.boolean(),
+      resolvedBy: v.optional(v.id("users")),
+      resolvedAt: v.optional(v.number()),
+      path: v.array(v.id("resourceComments")),
+      depth: v.number(),
+    })),
+    isDone: v.boolean(),
+    continueCursor: v.union(v.string(), v.null()),
+  }),
+  handler: async (ctx, args) => {
+    return await ResourceModel.getResourceCommentsPaginated(
+      ctx,
+      args.resourceId,
+      args.paginationOpts
+    );
+  },
+});
+
+// Mutation to add a comment
+export const addComment = mutation({
+  args: {
+    resourceId: v.id("resources"),
+    content: v.string(),
+    parentCommentId: v.optional(v.id("resourceComments")),
+  },
+  returns: v.id("resourceComments"),
+  handler: async (ctx, args) => {
+    return await ResourceModel.addComment(
+      ctx,
+      args.resourceId,
+      args.content,
+      args.parentCommentId
+    );
+  },
+});
+
+// Mutation to update a comment
+export const updateComment = mutation({
+  args: {
+    commentId: v.id("resourceComments"),
+    content: v.string(),
+  },
+  returns: v.id("resourceComments"),
+  handler: async (ctx, args) => {
+    return await ResourceModel.updateComment(ctx, args.commentId, args.content);
+  },
+});
+
+// Mutation to resolve/unresolve a comment
+export const toggleCommentResolution = mutation({
+  args: {
+    commentId: v.id("resourceComments"),
+  },
+  returns: v.id("resourceComments"),
+  handler: async (ctx, args) => {
+    return await ResourceModel.toggleCommentResolution(ctx, args.commentId);
   },
 });

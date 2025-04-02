@@ -1,5 +1,6 @@
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
+import { paginationOptsValidator } from "convex/server";
 
 // Type for resource content
 type ResourceContent = {
@@ -51,6 +52,12 @@ type SearchResourcesArgs = {
   projectId?: Id<"projects">;
   type?: "document" | "codeSnippet" | "externalLink" | "feed";
   limit?: number;
+};
+
+// Update PaginationOpts type to match Convex standard
+type PaginationOpts = {
+  numItems: number;
+  cursor: string | null;
 };
 
 // Get a resource by ID
@@ -127,12 +134,38 @@ export async function createResource(
 export async function updateResource(
   ctx: MutationCtx,
   id: Id<"resources">,
-  updates: UpdateResourceArgs
+  updates: UpdateResourceArgs,
+  versionMessage?: string
 ) {
   // Verify resource exists
   const resource = await ctx.db.get(id);
   if (!resource) {
     throw new Error("Resource not found");
+  }
+
+  // Track changes for versioning
+  const changes: Array<{ field: string; oldValue: any; newValue: any }> = [];
+
+  // Compare and record changes
+  for (const [key, value] of Object.entries(updates)) {
+    if (JSON.stringify(resource[key as keyof typeof resource]) !== JSON.stringify(value)) {
+      changes.push({
+        field: key,
+        oldValue: resource[key as keyof typeof resource],
+        newValue: value
+      });
+    }
+  }
+
+  // If there are changes, create a new version
+  if (changes.length > 0 && updates.content) {
+    await createResourceVersion(
+      ctx,
+      id,
+      updates.content,
+      changes,
+      versionMessage
+    );
   }
 
   // Apply updates
@@ -416,4 +449,283 @@ export async function getResourceAccessHistory(
   }
 
   return await query.collect();
+}
+
+// Get paginated resources for a project
+export async function getResourcesByProjectPaginated(
+  ctx: QueryCtx,
+  projectId: Id<"projects">,
+  paginationOpts: PaginationOpts
+) {
+  return await ctx.db
+    .query("resources")
+    .withIndex("by_project", (q) => q.eq("projectId", projectId))
+    .paginate(paginationOpts);
+}
+
+// Get paginated resources by type for a project
+export async function getResourcesByTypePaginated(
+  ctx: QueryCtx,
+  projectId: Id<"projects">,
+  type: "document" | "codeSnippet" | "externalLink" | "feed",
+  paginationOpts: PaginationOpts
+) {
+  return await ctx.db
+    .query("resources")
+    .withIndex("by_project_and_type", (q) =>
+      q.eq("projectId", projectId).eq("type", type)
+    )
+    .paginate(paginationOpts);
+}
+
+// Get paginated resources by tag
+export async function getResourcesByTagPaginated(
+  ctx: QueryCtx,
+  tag: string,
+  projectId: Id<"projects"> | undefined,
+  paginationOpts: PaginationOpts
+) {
+  let query = ctx.db
+    .query("resources")
+    .withIndex("by_tag", (q) => q.eq("tags", [tag]));
+
+  if (projectId) {
+    query = query.filter((q) => q.eq(q.field("projectId"), projectId));
+  }
+
+  return await query.paginate(paginationOpts);
+}
+
+// Get paginated search results
+export async function searchResourcesPaginated(
+  ctx: QueryCtx,
+  args: SearchResourcesArgs & { paginationOpts: PaginationOpts }
+) {
+  const { searchTerm, projectId, type, paginationOpts } = args;
+
+  return await ctx.db
+    .query("resources")
+    .withSearchIndex("search", (q) => {
+      let search = q.search("name", searchTerm);
+
+      if (projectId) {
+        search = search.eq("projectId", projectId);
+      }
+
+      if (type) {
+        search = search.eq("type", type);
+      }
+
+      return search;
+    })
+    .paginate(paginationOpts);
+}
+
+// Get paginated favorite resources
+export async function getFavoriteResourcesPaginated(
+  ctx: QueryCtx,
+  userId: Id<"users">,
+  paginationOpts: PaginationOpts
+) {
+  const favoritesPage = await ctx.db
+    .query("resourceFavorites")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .paginate(paginationOpts);
+
+  // Get the actual resources for this page
+  const resources = await Promise.all(
+    favoritesPage.page.map(fav => ctx.db.get(fav.resourceId))
+  );
+
+  return {
+    page: resources.filter((r): r is NonNullable<typeof r> => r !== null),
+    isDone: favoritesPage.isDone,
+    continueCursor: favoritesPage.continueCursor,
+  };
+}
+
+// Get paginated access history
+export async function getResourceAccessHistoryPaginated(
+  ctx: QueryCtx,
+  resourceId: Id<"resources">,
+  paginationOpts: PaginationOpts
+) {
+  return await ctx.db
+    .query("resourceAccess")
+    .withIndex("by_resource", (q) => q.eq("resourceId", resourceId))
+    .paginate(paginationOpts);
+}
+
+// Get paginated versions for a resource
+export async function getResourceVersionsPaginated(
+  ctx: QueryCtx,
+  resourceId: Id<"resources">,
+  paginationOpts: PaginationOpts
+) {
+  return await ctx.db
+    .query("resourceVersions")
+    .withIndex("by_resource", (q) => q.eq("resourceId", resourceId))
+    .paginate(paginationOpts);
+}
+
+// Get a specific version of a resource
+export async function getResourceVersion(
+  ctx: QueryCtx,
+  resourceId: Id<"resources">,
+  versionNumber: number
+) {
+  return await ctx.db
+    .query("resourceVersions")
+    .withIndex("by_resource_and_version", (q) =>
+      q.eq("resourceId", resourceId).eq("versionNumber", versionNumber)
+    )
+    .unique();
+}
+
+// Create a new version when updating a resource
+export async function createResourceVersion(
+  ctx: MutationCtx,
+  resourceId: Id<"resources">,
+  content: ResourceContent,
+  changes: Array<{ field: string; oldValue: any; newValue: any }>,
+  message?: string
+) {
+  // Get the current version number
+  const latestVersion = await ctx.db
+    .query("resourceVersions")
+    .withIndex("by_resource", (q) => q.eq("resourceId", resourceId))
+    .order("desc")
+    .first();
+
+  const versionNumber = (latestVersion?.versionNumber ?? 0) + 1;
+
+  // Get the authenticated user ID
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+
+  // Create new version
+  return await ctx.db.insert("resourceVersions", {
+    resourceId,
+    versionNumber,
+    content,
+    changes,
+    message,
+    createdBy: identity.subject as Id<"users">,
+    createdAt: Date.now(),
+  });
+}
+
+// Get paginated comments for a resource
+export async function getResourceCommentsPaginated(
+  ctx: QueryCtx,
+  resourceId: Id<"resources">,
+  paginationOpts: PaginationOpts
+) {
+  return await ctx.db
+    .query("resourceComments")
+    .withIndex("by_resource", (q) => q.eq("resourceId", resourceId))
+    .paginate(paginationOpts);
+}
+
+// Add a comment to a resource
+export async function addComment(
+  ctx: MutationCtx,
+  resourceId: Id<"resources">,
+  content: string,
+  parentCommentId?: Id<"resourceComments">
+) {
+  // Verify resource exists
+  const resource = await ctx.db.get(resourceId);
+  if (!resource) {
+    throw new Error("Resource not found");
+  }
+
+  // Get the authenticated user ID
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+  const userId = identity.subject as Id<"users">;
+
+  // If this is a reply, get the parent comment to build the path
+  let path: Id<"resourceComments">[] = [];
+  let depth = 0;
+
+  if (parentCommentId) {
+    const parentComment = await ctx.db.get(parentCommentId);
+    if (!parentComment) {
+      throw new Error("Parent comment not found");
+    }
+    path = [...parentComment.path, parentCommentId];
+    depth = parentComment.depth + 1;
+  }
+
+  // Create comment
+  return await ctx.db.insert("resourceComments", {
+    resourceId,
+    content,
+    createdBy: userId,
+    createdAt: Date.now(),
+    parentCommentId,
+    isResolved: false,
+    path,
+    depth,
+  });
+}
+
+// Update a comment
+export async function updateComment(
+  ctx: MutationCtx,
+  commentId: Id<"resourceComments">,
+  content: string
+) {
+  // Verify comment exists and user owns it
+  const comment = await ctx.db.get(commentId);
+  if (!comment) {
+    throw new Error("Comment not found");
+  }
+
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity || identity.subject !== comment.createdBy) {
+    throw new Error("Not authorized to update this comment");
+  }
+
+  // Update comment
+  await ctx.db.patch(commentId, {
+    content,
+    updatedAt: Date.now(),
+  });
+
+  return commentId;
+}
+
+// Toggle comment resolution status
+export async function toggleCommentResolution(
+  ctx: MutationCtx,
+  commentId: Id<"resourceComments">
+) {
+  // Verify comment exists
+  const comment = await ctx.db.get(commentId);
+  if (!comment) {
+    throw new Error("Comment not found");
+  }
+
+  // Get the authenticated user ID
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+  const userId = identity.subject as Id<"users">;
+
+  // Toggle resolution status
+  const isResolved = !comment.isResolved;
+  await ctx.db.patch(commentId, {
+    isResolved,
+    resolvedBy: isResolved ? userId : undefined,
+    resolvedAt: isResolved ? Date.now() : undefined,
+  });
+
+  return commentId;
 }
