@@ -60,6 +60,13 @@ export const resourcesTables = {
       })
     ),
 
+    // Tags
+    tags: v.array(v.string()),
+
+    // Access tracking
+    lastAccessedAt: v.optional(v.number()),
+    accessCount: v.number(),
+
     // Audit fields
     createdBy: v.id("users"),
     createdAt: v.number(),
@@ -68,10 +75,37 @@ export const resourcesTables = {
     .index("by_project", ["projectId"])
     .index("by_type", ["type"])
     .index("by_project_and_type", ["projectId", "type"])
+    .index("by_tag", ["tags"])
+    .index("by_project_and_tag", ["projectId", "tags"])
     .searchIndex("search", {
       searchField: "name",
-      filterFields: ["projectId", "type"],
+      filterFields: ["projectId", "type", "tags"],
     }),
+
+  resourceFavorites: defineTable({
+    resourceId: v.id("resources"),
+    userId: v.id("users"),
+    createdAt: v.number(),
+    notes: v.optional(v.string()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_resource", ["resourceId"])
+    .index("by_user_and_resource", ["userId", "resourceId"]),
+
+  resourceAccess: defineTable({
+    resourceId: v.id("resources"),
+    userId: v.id("users"),
+    accessedAt: v.number(),
+    accessType: v.union(
+      v.literal("view"),
+      v.literal("edit"),
+      v.literal("share"),
+      v.literal("download")
+    ),
+  })
+    .index("by_resource", ["resourceId"])
+    .index("by_user", ["userId"])
+    .index("by_recent", ["accessedAt"]),
 };
 
 const resourceValidator = resourcesTables.resources.validator;
@@ -255,5 +289,118 @@ export const shareResource = mutation({
   returns: v.id("resources"),
   handler: async (ctx, args) => {
     return await ResourceModel.shareResource(ctx, args.resourceId, args.visibility);
+  },
+});
+
+// Mutation to add tags to a resource
+export const addTags = mutation({
+  args: {
+    resourceId: v.id("resources"),
+    tags: v.array(v.string()),
+  },
+  returns: v.id("resources"),
+  handler: async (ctx, args) => {
+    return await ResourceModel.addTags(ctx, args.resourceId, args.tags);
+  },
+});
+
+// Mutation to remove tags from a resource
+export const removeTags = mutation({
+  args: {
+    resourceId: v.id("resources"),
+    tags: v.array(v.string()),
+  },
+  returns: v.id("resources"),
+  handler: async (ctx, args) => {
+    return await ResourceModel.removeTags(ctx, args.resourceId, args.tags);
+  },
+});
+
+// Query to get resources by tag
+export const getResourcesByTag = query({
+  args: {
+    tag: v.string(),
+    projectId: v.optional(v.id("projects")),
+  },
+  returns: v.array(resourceValidator),
+  handler: async (ctx, args) => {
+    return await ResourceModel.getResourcesByTag(ctx, args.tag, args.projectId);
+  },
+});
+
+// Mutation to add a resource to favorites
+export const addToFavorites = mutation({
+  args: {
+    resourceId: v.id("resources"),
+    notes: v.optional(v.string()),
+  },
+  returns: v.id("resourceFavorites"),
+  handler: async (ctx, args) => {
+    return await ResourceModel.addToFavorites(ctx, args.resourceId, args.notes);
+  },
+});
+
+// Mutation to remove a resource from favorites
+export const removeFromFavorites = mutation({
+  args: {
+    resourceId: v.id("resources"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await ResourceModel.removeFromFavorites(ctx, args.resourceId);
+    return null;
+  },
+});
+
+// Query to get user's favorite resources
+export const getFavoriteResources = query({
+  args: {
+    userId: v.id("users"),
+  },
+  returns: v.array(resourceValidator),
+  handler: async (ctx, args) => {
+    return await ResourceModel.getFavoriteResources(ctx, args.userId);
+  },
+});
+
+// Mutation to record resource access
+export const recordAccess = mutation({
+  args: {
+    resourceId: v.id("resources"),
+    accessType: v.union(
+      v.literal("view"),
+      v.literal("edit"),
+      v.literal("share"),
+      v.literal("download")
+    ),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await ResourceModel.recordAccess(ctx, args.resourceId, args.accessType);
+    return null;
+  },
+});
+
+// Query to get resource access history
+export const getResourceAccessHistory = query({
+  args: {
+    resourceId: v.id("resources"),
+    limit: v.optional(v.number()),
+  },
+  returns: v.array(v.object({
+    _id: v.id("resourceAccess"),
+    _creationTime: v.number(),
+    resourceId: v.id("resources"),
+    userId: v.id("users"),
+    accessType: v.union(
+      v.literal("view"),
+      v.literal("edit"),
+      v.literal("share"),
+      v.literal("download")
+    ),
+    accessedAt: v.number(),
+  })),
+  handler: async (ctx, args) => {
+    return await ResourceModel.getResourceAccessHistory(ctx, args.resourceId, args.limit);
   },
 });
