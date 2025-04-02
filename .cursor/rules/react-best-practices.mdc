@@ -1,0 +1,15 @@
+---
+description: Best practices for React component development and state management
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+
+- Use functional components with hooks instead of class components
+- Implement proper global state management using Context API
+- Utilize memoization with `useMemo` and `useCallback` for performance optimization
+- Implement error boundaries with `react-error-boundary` for graceful error handling
+- This project is a SPA, so all the components will be rendered on the client side
+- Use functional components with TypeScript types for Props
+- Name the props type `ComponentNameProps`  so the name of the type is always the name of the component suffixed with "Prop"
+- DO NOT USE `useEffect` to fetch data
+- DO NOT USE code patterns that are Next.js specific

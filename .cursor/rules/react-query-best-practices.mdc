@@ -1,0 +1,12 @@
+---
+description: Best practices for data fetching and caching with React Query
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+
+- Use `useQuery` or ideally `useSuspenseQuery` for fetching data and `useMutation` for data modifications
+- Implement proper error handling and loading states
+- Utilize query keys imported from `src/types/_generated/@tanstack/react-query.gen.ts` for optimistic updates
+- Do optimistic updates onSuccess of `useMutation`
+- Use `queryClient` for manual cache management and prefetching
+- Always use `queryOptions` functions imported from `src/types/_generated/@tanstack/react-query.gen.ts`
