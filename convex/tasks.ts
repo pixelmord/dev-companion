@@ -43,7 +43,7 @@ export const createTask = mutation({
 		if (!identity) {
 			throw new Error("Unauthorized");
 		}
-
+		console.warn(identity);
 		const user = await ctx.db
 			.query("users")
 			.withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
@@ -71,6 +71,7 @@ export const updateTask = mutation({
 		if (!identity) {
 			throw new Error("Unauthorized");
 		}
+		console.log(identity);
 
 		const user = await ctx.db
 			.query("users")

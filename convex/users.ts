@@ -1,7 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import type { Id } from "./_generated/dataModel";
 import * as UserModel from "./model/users";
 
 export const usersTables = {
@@ -29,7 +28,6 @@ export const usersTables = {
 
     // Timestamps
     lastActive: v.number(),
-    createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_clerk_id", ["clerkId"])

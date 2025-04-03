@@ -1,6 +1,7 @@
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
 import { paginationOptsValidator } from "convex/server";
+import { v } from "convex/values";
 
 // Type for resource content
 type ResourceContent = {
@@ -59,6 +60,18 @@ type PaginationOpts = {
   numItems: number;
   cursor: string | null;
 };
+
+// Type for share target
+type ShareTarget = {
+  type: "user";
+  userId: Id<"users">;
+} | {
+  type: "team";
+  teamId: Id<"teams">;
+};
+
+// Type for share permissions
+type SharePermission = "view" | "comment" | "edit" | "share";
 
 // Get a resource by ID
 export async function getResource(
@@ -728,4 +741,256 @@ export async function toggleCommentResolution(
   });
 
   return commentId;
+}
+
+// Create a share link for a resource
+export async function createShareLink(
+  ctx: MutationCtx,
+  resourceId: Id<"resources">,
+  permissions: SharePermission[],
+  expiresAt?: number
+) {
+  // Get the authenticated user ID
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+  const userId = identity.subject as Id<"users">;
+
+  // Verify resource exists
+  const resource = await ctx.db.get(resourceId);
+  if (!resource) {
+    throw new Error("Resource not found");
+  }
+
+  // Generate a random access code
+  const accessCode = generateAccessCode();
+
+  // Create share record
+  const shareId = await ctx.db.insert("resourceShares", {
+    resourceId,
+    sharedBy: userId,
+    sharedWith: {
+      type: "public",
+      accessCode,
+    },
+    permissions,
+    expiresAt,
+    createdAt: Date.now(),
+    accessCount: 0,
+  });
+
+  return { shareId, accessCode };
+}
+
+// Share a resource with a user or team
+export async function shareWithTarget(
+  ctx: MutationCtx,
+  resourceId: Id<"resources">,
+  target: ShareTarget,
+  permissions: SharePermission[],
+  expiresAt?: number
+) {
+  // Get the authenticated user ID
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+  const userId = identity.subject as Id<"users">;
+
+  // Verify resource exists
+  const resource = await ctx.db.get(resourceId);
+  if (!resource) {
+    throw new Error("Resource not found");
+  }
+
+  // Create share record
+  return await ctx.db.insert("resourceShares", {
+    resourceId,
+    sharedBy: userId,
+    sharedWith: target,
+    permissions,
+    expiresAt,
+    createdAt: Date.now(),
+    accessCount: 0,
+  });
+}
+
+// Get paginated shares for a resource
+export async function getResourceSharesPaginated(
+  ctx: QueryCtx,
+  resourceId: Id<"resources">,
+  paginationOpts: PaginationOpts
+) {
+  return await ctx.db
+    .query("resourceShares")
+    .withIndex("by_resource", (q) => q.eq("resourceId", resourceId))
+    .paginate(paginationOpts);
+}
+
+// Get paginated resources shared with the current user
+export async function getSharedWithMePaginated(
+  ctx: QueryCtx,
+  paginationOpts: PaginationOpts
+) {
+  // Get the authenticated user ID
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+  const userId = identity.subject as Id<"users">;
+
+  // Get shares for this user
+  const sharesPage = await ctx.db
+    .query("resourceShares")
+    .withIndex("by_shared_with_user", (q) =>
+      q.eq("sharedWith.type", "user").eq("sharedWith.userId", userId)
+    )
+    .paginate(paginationOpts);
+
+  // Get the actual resources
+  const resources = await Promise.all(
+    sharesPage.page.map(share => ctx.db.get(share.resourceId))
+  );
+
+  return {
+    page: resources.filter((r): r is NonNullable<typeof r> => r !== null),
+    isDone: sharesPage.isDone,
+    continueCursor: sharesPage.continueCursor,
+  };
+}
+
+// Start a collaboration session
+export async function startCollaborationSession(
+  ctx: MutationCtx,
+  resourceId: Id<"resources">
+) {
+  // Get the authenticated user ID
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+  const userId = identity.subject as Id<"users">;
+
+  // Verify resource exists
+  const resource = await ctx.db.get(resourceId);
+  if (!resource) {
+    throw new Error("Resource not found");
+  }
+
+  // Create session
+  return await ctx.db.insert("collaborationSessions", {
+    resourceId,
+    startedBy: userId,
+    startedAt: Date.now(),
+    participants: [{
+      userId,
+      joinedAt: Date.now(),
+    }],
+    changes: [],
+  });
+}
+
+// Join a collaboration session
+export async function joinCollaborationSession(
+  ctx: MutationCtx,
+  sessionId: Id<"collaborationSessions">
+) {
+  // Get the authenticated user ID
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+  const userId = identity.subject as Id<"users">;
+
+  // Get the session
+  const session = await ctx.db.get(sessionId);
+  if (!session) {
+    throw new Error("Session not found");
+  }
+
+  if (session.endedAt) {
+    throw new Error("Session has ended");
+  }
+
+  // Check if user is already in the session
+  const participant = session.participants.find(p => p.userId === userId);
+  if (participant && !participant.leftAt) {
+    return sessionId;
+  }
+
+  // Add user to participants
+  await ctx.db.patch(sessionId, {
+    participants: [
+      ...session.participants,
+      {
+        userId,
+        joinedAt: Date.now(),
+      },
+    ],
+  });
+
+  return sessionId;
+}
+
+// Leave a collaboration session
+export async function leaveCollaborationSession(
+  ctx: MutationCtx,
+  sessionId: Id<"collaborationSessions">
+) {
+  // Get the authenticated user ID
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+  const userId = identity.subject as Id<"users">;
+
+  // Get the session
+  const session = await ctx.db.get(sessionId);
+  if (!session) {
+    throw new Error("Session not found");
+  }
+
+  if (session.endedAt) {
+    throw new Error("Session has already ended");
+  }
+
+  // Update participant's leftAt time
+  const participants = session.participants.map(p =>
+    p.userId === userId && !p.leftAt
+      ? { ...p, leftAt: Date.now() }
+      : p
+  );
+
+  // If all participants have left, end the session
+  const hasActiveParticipants = participants.some(p => !p.leftAt);
+  const updates: any = { participants };
+  if (!hasActiveParticipants) {
+    updates.endedAt = Date.now();
+  }
+
+  await ctx.db.patch(sessionId, updates);
+  return sessionId;
+}
+
+// Get active collaboration sessions for a resource
+export async function getActiveCollaborationSessions(
+  ctx: QueryCtx,
+  resourceId: Id<"resources">
+) {
+  return await ctx.db
+    .query("collaborationSessions")
+    .withIndex("by_resource", (q) => q.eq("resourceId", resourceId))
+    .filter((q) => q.eq(q.field("endedAt"), undefined))
+    .collect();
+}
+
+// Helper function to generate a random access code
+function generateAccessCode(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let code = '';
+  for (let i = 0; i < 10; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
 }

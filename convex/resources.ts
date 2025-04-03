@@ -177,6 +177,65 @@ export const resourcesTables = {
       searchField: "content",
       filterFields: ["resourceId", "isResolved"],
     }),
+
+  resourceShares: defineTable({
+    resourceId: v.id("resources"),
+    sharedBy: v.id("users"),
+    sharedWith: v.union(
+      v.object({
+        type: v.literal("user"),
+        userId: v.id("users"),
+      }),
+      v.object({
+        type: v.literal("team"),
+        teamId: v.id("teams"),
+      }),
+      v.object({
+        type: v.literal("public"),
+        accessCode: v.string(),
+      })
+    ),
+    permissions: v.array(v.union(
+      v.literal("view"),
+      v.literal("comment"),
+      v.literal("edit"),
+      v.literal("share")
+    )),
+    expiresAt: v.optional(v.number()),
+    createdAt: v.number(),
+    lastAccessedAt: v.optional(v.number()),
+    accessCount: v.number(),
+  })
+    .index("by_resource", ["resourceId"])
+    .index("by_shared_by", ["sharedBy"])
+    .index("by_shared_with_user", ["sharedWith.type", "sharedWith.userId"])
+    .index("by_shared_with_team", ["sharedWith.type", "sharedWith.teamId"])
+    .index("by_access_code", ["sharedWith.type", "sharedWith.accessCode"]),
+
+  collaborationSessions: defineTable({
+    resourceId: v.id("resources"),
+    startedBy: v.id("users"),
+    startedAt: v.number(),
+    endedAt: v.optional(v.number()),
+    participants: v.array(v.object({
+      userId: v.id("users"),
+      joinedAt: v.number(),
+      leftAt: v.optional(v.number()),
+    })),
+    changes: v.array(v.object({
+      userId: v.id("users"),
+      timestamp: v.number(),
+      type: v.union(
+        v.literal("edit"),
+        v.literal("comment"),
+        v.literal("resolve_comment")
+      ),
+      details: v.any(),
+    })),
+  })
+    .index("by_resource", ["resourceId"])
+    .index("by_active", ["endedAt"])
+    .index("by_participant", ["participants"]),
 };
 
 const resourceValidator = resourcesTables.resources.validator;
@@ -779,5 +838,195 @@ export const toggleCommentResolution = mutation({
   returns: v.id("resourceComments"),
   handler: async (ctx, args) => {
     return await ResourceModel.toggleCommentResolution(ctx, args.commentId);
+  },
+});
+
+// Mutation to create a share link
+export const createShareLink = mutation({
+  args: {
+    resourceId: v.id("resources"),
+    permissions: v.array(v.union(
+      v.literal("view"),
+      v.literal("comment"),
+      v.literal("edit"),
+      v.literal("share")
+    )),
+    expiresAt: v.optional(v.number()),
+  },
+  returns: v.object({
+    shareId: v.id("resourceShares"),
+    accessCode: v.string(),
+  }),
+  handler: async (ctx, args) => {
+    return await ResourceModel.createShareLink(
+      ctx,
+      args.resourceId,
+      args.permissions,
+      args.expiresAt
+    );
+  },
+});
+
+// Mutation to share with user or team
+export const shareWithTarget = mutation({
+  args: {
+    resourceId: v.id("resources"),
+    target: v.union(
+      v.object({
+        type: v.literal("user"),
+        userId: v.id("users"),
+      }),
+      v.object({
+        type: v.literal("team"),
+        teamId: v.id("teams"),
+      })
+    ),
+    permissions: v.array(v.union(
+      v.literal("view"),
+      v.literal("comment"),
+      v.literal("edit"),
+      v.literal("share")
+    )),
+    expiresAt: v.optional(v.number()),
+  },
+  returns: v.id("resourceShares"),
+  handler: async (ctx, args) => {
+    return await ResourceModel.shareWithTarget(
+      ctx,
+      args.resourceId,
+      args.target,
+      args.permissions,
+      args.expiresAt
+    );
+  },
+});
+
+// Query to get shares for a resource
+export const getResourceShares = query({
+  args: {
+    resourceId: v.id("resources"),
+    paginationOpts: paginationOptsValidator,
+  },
+  returns: v.object({
+    page: v.array(v.object({
+      _id: v.id("resourceShares"),
+      _creationTime: v.number(),
+      resourceId: v.id("resources"),
+      sharedBy: v.id("users"),
+      sharedWith: v.union(
+        v.object({
+          type: v.literal("user"),
+          userId: v.id("users"),
+        }),
+        v.object({
+          type: v.literal("team"),
+          teamId: v.id("teams"),
+        }),
+        v.object({
+          type: v.literal("public"),
+          accessCode: v.string(),
+        })
+      ),
+      permissions: v.array(v.union(
+        v.literal("view"),
+        v.literal("comment"),
+        v.literal("edit"),
+        v.literal("share")
+      )),
+      expiresAt: v.optional(v.number()),
+      createdAt: v.number(),
+      lastAccessedAt: v.optional(v.number()),
+      accessCount: v.number(),
+    })),
+    isDone: v.boolean(),
+    continueCursor: v.union(v.string(), v.null()),
+  }),
+  handler: async (ctx, args) => {
+    return await ResourceModel.getResourceSharesPaginated(
+      ctx,
+      args.resourceId,
+      args.paginationOpts
+    );
+  },
+});
+
+// Query to get shared resources
+export const getSharedWithMe = query({
+  args: {
+    paginationOpts: paginationOptsValidator,
+  },
+  returns: v.object({
+    page: v.array(resourcesTables.resources.validator),
+    isDone: v.boolean(),
+    continueCursor: v.union(v.string(), v.null()),
+  }),
+  handler: async (ctx, args) => {
+    return await ResourceModel.getSharedWithMePaginated(ctx, args.paginationOpts);
+  },
+});
+
+// Mutation to start a collaboration session
+export const startCollaborationSession = mutation({
+  args: {
+    resourceId: v.id("resources"),
+  },
+  returns: v.id("collaborationSessions"),
+  handler: async (ctx, args) => {
+    return await ResourceModel.startCollaborationSession(ctx, args.resourceId);
+  },
+});
+
+// Mutation to join a collaboration session
+export const joinCollaborationSession = mutation({
+  args: {
+    sessionId: v.id("collaborationSessions"),
+  },
+  returns: v.id("collaborationSessions"),
+  handler: async (ctx, args) => {
+    return await ResourceModel.joinCollaborationSession(ctx, args.sessionId);
+  },
+});
+
+// Mutation to leave a collaboration session
+export const leaveCollaborationSession = mutation({
+  args: {
+    sessionId: v.id("collaborationSessions"),
+  },
+  returns: v.id("collaborationSessions"),
+  handler: async (ctx, args) => {
+    return await ResourceModel.leaveCollaborationSession(ctx, args.sessionId);
+  },
+});
+
+// Query to get active collaboration sessions for a resource
+export const getActiveCollaborationSessions = query({
+  args: {
+    resourceId: v.id("resources"),
+  },
+  returns: v.array(v.object({
+    _id: v.id("collaborationSessions"),
+    _creationTime: v.number(),
+    resourceId: v.id("resources"),
+    startedBy: v.id("users"),
+    startedAt: v.number(),
+    endedAt: v.optional(v.number()),
+    participants: v.array(v.object({
+      userId: v.id("users"),
+      joinedAt: v.number(),
+      leftAt: v.optional(v.number()),
+    })),
+    changes: v.array(v.object({
+      userId: v.id("users"),
+      timestamp: v.number(),
+      type: v.union(
+        v.literal("edit"),
+        v.literal("comment"),
+        v.literal("resolve_comment")
+      ),
+      details: v.any(),
+    })),
+  })),
+  handler: async (ctx, args) => {
+    return await ResourceModel.getActiveCollaborationSessions(ctx, args.resourceId);
   },
 });

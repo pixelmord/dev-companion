@@ -1,5 +1,4 @@
 import type { QueryCtx, MutationCtx } from "../_generated/server";
-import { v } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 
 export async function getUserByClerkId(
@@ -43,7 +42,6 @@ export async function createNewUser(
   return await ctx.db.insert("users", {
     ...args,
     lastActive: now,
-    createdAt: now,
     updatedAt: now,
     preferences: {
       theme: "system",

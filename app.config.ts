@@ -17,9 +17,5 @@ export default defineConfig({
       }),
       tailwindcss(),
     ],
-    test: {
-      environment: "edge-runtime",
-      server: { deps: { inline: ["convex-test"] } },
-    },
   },
 })
