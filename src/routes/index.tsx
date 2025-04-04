@@ -1,6 +1,6 @@
-import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Header from "@/features/public-landing/Header";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { BarChart2, FileText, Github, Star } from "lucide-react";
 

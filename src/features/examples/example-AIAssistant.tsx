@@ -7,13 +7,13 @@ import rehypeHighlight from "rehype-highlight";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
-import { genAIResponse } from "../utils/demo.ai";
+import { genAIResponse } from "../../utils/demo.ai";
 
-import { showAIAssistant } from "../store/example-assistant";
+import { showAIAssistant } from "../../store/example-assistant";
 import GuitarRecommendation from "./example-GuitarRecommendation";
 
 import type { UIMessage } from "ai";
-import { Button } from "./ui/button";
+import { Button } from "../../components/ui/button";
 
 function Messages({ messages }: { messages: Array<UIMessage> }) {
 	const messagesContainerRef = useRef<HTMLDivElement>(null);

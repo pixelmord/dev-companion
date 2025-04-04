@@ -5,14 +5,14 @@ import invariant from "tiny-invariant";
 import { flushSync } from "react-dom";
 
 import { CONTENT_TYPES, type RenderedItem } from "@/types";
-import { Icon } from "../icons/icons";
+import { EditableText } from "../../components/EditableText";
+import { Icon } from "../../icons/icons";
 import {
 	useDeleteColumnMutation,
 	useUpdateCardMutation,
 	useUpdateColumnMutation,
-} from "../queries";
+} from "../../queries";
 import { Card } from "./Card";
-import { EditableText } from "./EditableText";
 import { NewCard } from "./NewCard";
 
 interface ColumnProps {

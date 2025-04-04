@@ -4,8 +4,8 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import type { Column } from "convex/schema.js";
 import { useCallback, useMemo, useRef } from "react";
 import invariant from "tiny-invariant";
-import { api } from "../../convex/_generated/api.js";
-import { useUpdateBoardMutation } from "../queries.js";
+import { api } from "../../../convex/_generated/api.js";
+import { useUpdateBoardMutation } from "../../queries.js";
 import { Column as ColumnComponent } from "./Column.js";
 import { NewColumn } from "./NewColumn.js";
 

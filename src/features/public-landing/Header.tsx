@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 
-import ClerkHeader from "../integrations/clerk/header-user";
+import ClerkHeader from "../../integrations/clerk/header-user";
 
-import TanchatHeader from "../integrations/tanchat/header-user";
+import TanchatHeader from "../../integrations/tanchat/header-user";
 
 export default function Header() {
 	return (

@@ -1,11 +1,11 @@
 import { useRef } from "react";
 import invariant from "tiny-invariant";
 
-import { CancelButton } from "@/components/CancelButton";
-import { SaveButton } from "@/components/SaveButton";
-import { itemSchema } from "../db/schema";
-import { useCreateItemMutation } from "../queries";
-import { ItemMutationFields } from "../types";
+import { CancelButton } from "@/features/trello-board/CancelButton";
+import { SaveButton } from "@/features/trello-board/SaveButton";
+import { itemSchema } from "../../db/schema";
+import { useCreateItemMutation } from "../../queries";
+import { ItemMutationFields } from "../../types";
 
 export function NewCard({
 	columnId,

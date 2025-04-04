@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "generatedAt": "2025-04-02T22:47:22.523Z",
+    "tasksAnalyzed": 10,
+    "thresholdScore": 5,
+    "projectName": "Your Project Name",
+    "usedResearch": false
+  },
+  "complexityAnalysis": [
+    {
+      "taskId": 1,
+      "taskTitle": "Set up project infrastructure and authentication",
+      "complexityScore": 7,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the infrastructure setup task into logical phases focusing on: 1) initial repository and development environment setup, 2) authentication implementation with Clerk, 3) database configuration with Convex, and 4) UI framework setup with routing and layout components.",
+      "reasoning": "This task involves multiple technical integrations (Clerk, Convex, Tanstack Router) and requires careful configuration of interdependent systems. The complexity comes from ensuring these systems work together correctly, particularly the authentication flow with session management."
+    },
+    {
+      "taskId": 2,
+      "taskTitle": "Implement core data models and relationships",
+      "complexityScore": 8,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Divide the data modeling task into logical groups: 1) user and team models with relationships, 2) project and resource base models, 3) specialized resource type implementations, and 4) activity tracking and indexing for performance.",
+      "reasoning": "Designing the data model requires careful consideration of relationships between entities and planning for future extensibility. The complexity is high because these models form the foundation of the application, and mistakes here would be costly to fix later."
+    },
+    {
+      "taskId": 3,
+      "taskTitle": "Build user profile and team management",
+      "complexityScore": 6,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Organize the user and team management features into: 1) user profile creation and editing workflows, 2) team creation, editing and membership management, and 3) team navigation and activity feed implementation.",
+      "reasoning": "This task involves building several UI interfaces and implementing business logic for team management. The complexity is moderate as it builds on established data models, but requires careful handling of permissions and user flows."
+    },
+    {
+      "taskId": 4,
+      "taskTitle": "Develop document editor with markdown support",
+      "complexityScore": 8,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Split the document editor implementation into: 1) core markdown editor component with preview functionality, 2) document storage, retrieval and versioning system, 3) document organization and listing interfaces, and 4) document sharing and template functionality.",
+      "reasoning": "Creating a robust document editor involves complex UI components and state management. Implementing versioning adds another layer of complexity. This is a central feature of the application that needs to be reliable and performant."
+    },
+    {
+      "taskId": 5,
+      "taskTitle": "Implement basic AI integration with Vercel AI SDK",
+      "complexityScore": 7,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Divide the AI integration into: 1) core SDK setup and basic content generation capabilities, 2) specialized AI features for documents including summarization and suggestions, and 3) code-specific AI features and content improvement tools.",
+      "reasoning": "Integrating AI capabilities requires understanding of the Vercel AI SDK and implementing appropriate UX for AI interactions. The complexity comes from ensuring AI features are useful and performant while integrating with existing components."
+    },
+    {
+      "taskId": 6,
+      "taskTitle": "Build code snippet management system",
+      "complexityScore": 6,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Organize the code snippet management into: 1) snippet editor with syntax highlighting and language support, 2) organization system with tagging and search functionality, and 3) version tracking and sharing capabilities including AI documentation assistance.",
+      "reasoning": "This task involves creating specialized editors with syntax highlighting and organizing code snippets effectively. The complexity is moderate as it builds on established patterns but requires careful implementation of language-specific features."
+    },
+    {
+      "taskId": 7,
+      "taskTitle": "Develop search functionality with vector capabilities",
+      "complexityScore": 9,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the vector search implementation into: 1) research and selection of vector database solution, 2) content vectorization implementation for different content types, 3) search API and similarity matching algorithms, 4) search interface with filtering and result display, and 5) advanced features like natural language processing and related content suggestions.",
+      "reasoning": "Vector-based search is highly complex, requiring specialized knowledge of embeddings and similarity algorithms. This task depends on multiple other systems and requires optimization for performance. The research component adds uncertainty to the implementation approach."
+    },
+    {
+      "taskId": 8,
+      "taskTitle": "Implement external content integration",
+      "complexityScore": 7,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Divide external content integration into: 1) RSS feed parsing and storage implementation, 2) GitHub repository connection and API integration, 3) web content processing with summarization capabilities, and 4) content management interfaces including refresh mechanisms and recommendations.",
+      "reasoning": "This task involves integrating with multiple external APIs and handling various content formats. The complexity comes from dealing with external systems that may change and implementing content processing features like summarization."
+    },
+    {
+      "taskId": 9,
+      "taskTitle": "Build basic planning and estimation tools",
+      "complexityScore": 5,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Structure the planning tools implementation into: 1) Eisenhower Matrix and prioritization interfaces, 2) Scrum Poker and estimation session management, and 3) results tracking, history and export functionality.",
+      "reasoning": "This task involves building interactive planning tools with relatively straightforward functionality. The complexity is moderate, focusing on creating intuitive interfaces for team collaboration rather than complex technical challenges."
+    },
+    {
+      "taskId": 10,
+      "taskTitle": "Implement project management tool integrations",
+      "complexityScore": 8,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Organize the project management integrations into: 1) JIRA API integration and ticket synchronization, 2) GitHub Issues and Projects connection, 3) generic webhook support and configuration interfaces, and 4) synchronization mechanisms and status monitoring.",
+      "reasoning": "Integrating with external project management tools requires working with multiple APIs and handling data synchronization challenges. The complexity is high due to the need to maintain consistency between systems and handle potential failures gracefully."
+    }
+  ]
+}

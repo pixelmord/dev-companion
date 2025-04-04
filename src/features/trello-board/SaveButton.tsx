@@ -1,4 +1,4 @@
-import { Button, type ButtonProps } from "./ui/button";
+import { Button, type ButtonProps } from "../../components/ui/button";
 
 export function SaveButton(props: ButtonProps) {
 	return (
