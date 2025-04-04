@@ -1,10 +1,10 @@
 import { forwardRef, useState } from "react";
 import invariant from "tiny-invariant";
 
-import { deleteItemSchema } from "../db/schema";
-import { Icon } from "../icons/icons";
-import { useDeleteCardMutation, useUpdateCardMutation } from "../queries";
-import { CONTENT_TYPES } from "../types";
+import { deleteItemSchema } from "../../db/schema";
+import { Icon } from "../../icons/icons";
+import { useDeleteCardMutation, useUpdateCardMutation } from "../../queries";
+import { CONTENT_TYPES } from "../../types";
 
 interface CardProps {
 	title: string;

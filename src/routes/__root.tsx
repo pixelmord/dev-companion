@@ -8,14 +8,14 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
-import Header from "../components/Header";
+import Header from "../features/public-landing/Header";
 
 import TanstackQueryLayout from "../integrations/tanstack-query/layout";
 
 import appCss from "../styles.css?url";
 
-import { DefaultCatchBoundary } from "@/components/DefaultCatchBoundary";
 import { NotFound } from "@/components/NotFound";
+import { DefaultCatchBoundary } from "@/features/app/DefaultCatchBoundary";
 
 import { Toaster } from "@/components/ui/sonner";
 import { getAuth } from "@clerk/tanstack-react-start/server";

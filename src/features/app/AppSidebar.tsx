@@ -12,10 +12,8 @@ import {
 	SquareTerminal,
 } from "lucide-react";
 
-import { NavMain } from "@/components/NavMain";
-import { NavProjects } from "@/components/NavProjects";
-import { NavUser } from "@/components/NavUser";
-import { TeamSwitcher } from "@/components/TeamSwitcher";
+import { NavProjects } from "@/features/projects/NavProjects";
+import { NavUser } from "@/features/profile/NavUser";
 import {
 	Sidebar,
 	SidebarContent,
@@ -23,6 +21,8 @@ import {
 	SidebarHeader,
 	SidebarRail,
 } from "@/components/ui/sidebar";
+import { NavMain } from "@/features/app/NavMain";
+import { TeamSwitcher } from "@/features/teams/TeamSwitcher";
 
 import { type LinkOptions, linkOptions } from "@tanstack/react-router";
 import type { ComponentProps } from "react";

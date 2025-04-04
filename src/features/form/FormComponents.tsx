@@ -1,6 +1,6 @@
 import { useStore } from "@tanstack/react-form";
 
-import { useFieldContext, useFormContext } from "../hooks/form-context";
+import { useFieldContext, useFormContext } from "./form-context";
 
 import { Button } from "@/components/ui/button";
 import { Input, type InputProps } from "@/components/ui/input";

@@ -1,5 +1,5 @@
-import { ProfileEdit } from "@/components/profile/ProfileEdit";
-import { ProfileSetup } from "@/components/profile/ProfileSetup";
+import { ProfileEdit } from "@/features/profile/ProfileEdit";
+import { ProfileSetup } from "@/features/profile/ProfileSetup";
 import { useUser } from "@clerk/clerk-react";
 import { api } from "@convex-server/_generated/api";
 import { createFileRoute } from "@tanstack/react-router";

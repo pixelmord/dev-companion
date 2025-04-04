@@ -1,12 +1,14 @@
 import { useUser } from "@clerk/clerk-react";
 import { api } from "@convex-server/_generated/api";
-import type { Id } from "@convex-server/_generated/dataModel";
-import { useMutation, useQuery } from "convex/react";
-import { useEffect } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useMutation } from "convex/react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useAppForm } from "../../hooks/form";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import {
+	Avatar,
+	AvatarFallback,
+	AvatarImage,
+} from "../../components/ui/avatar";
 import {
 	Card,
 	CardContent,
@@ -14,7 +16,8 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-} from "../ui/card";
+} from "../../components/ui/card";
+import { useAppForm } from "../form/form";
 
 const schema = z.object({
 	name: z.string().min(1, "Full name is required"),
@@ -23,45 +26,44 @@ const schema = z.object({
 	avatarUrl: z.string(),
 });
 
-export function ProfileEdit() {
+export function ProfileSetup() {
 	const { user } = useUser();
-	const profile = useQuery(api.users.getProfile, { clerkId: user?.id || "" });
-	const updateProfile = useMutation(api.users.updateProfile);
+	const navigate = useNavigate();
+	const createProfile = useMutation(api.users.createProfile);
 
 	const form = useAppForm({
 		defaultValues: {
-			name: profile?.name || "",
-			email: profile?.email || "",
-			bio: profile?.bio || "",
-			avatarUrl: profile?.avatarUrl || "",
+			name: user?.fullName || "",
+			email: user?.primaryEmailAddress?.emailAddress || "",
+			bio: "",
+			avatarUrl: user?.imageUrl || "",
 		},
 		validators: {
 			onBlur: schema,
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				await updateProfile({
-					id: profile?._id as Id<"users">,
+				await createProfile({
 					...value,
+					clerkId: user?.id || "",
 				});
-				toast.success("Profile updated successfully!");
+				toast.success("Profile created successfully!");
+				navigate({ to: "/dashboard" });
 			} catch (error) {
-				toast.error("Failed to update profile. Please try again.");
-				console.error("Profile update error:", error);
+				toast.error("Failed to create profile. Please try again.");
+				console.error("Profile creation error:", error);
 			}
 		},
 	});
-
-	if (!profile) {
-		return <div>Loading...</div>;
-	}
 
 	return (
 		<div className="container mx-auto max-w-2xl p-4">
 			<Card>
 				<CardHeader>
-					<CardTitle>Edit Profile</CardTitle>
-					<CardDescription>Update your profile information.</CardDescription>
+					<CardTitle>Complete Your Profile</CardTitle>
+					<CardDescription>
+						Please provide some information about yourself to get started.
+					</CardDescription>
 				</CardHeader>
 				<form
 					onSubmit={(e) => {
@@ -114,7 +116,7 @@ export function ProfileEdit() {
 					</CardContent>
 					<CardFooter className="flex justify-end space-x-2">
 						<form.AppForm>
-							<form.SubscribeButton label="Save Changes" />
+							<form.SubscribeButton label="Complete Setup" />
 						</form.AppForm>
 					</CardFooter>
 				</form>
