@@ -49,31 +49,31 @@ export function createRouter() {
 	return router;
 }
 
-const router = createRouter();
+// const router = createRouter();
 
-createIsomorphicFn()
-	.server(() => {
-		SentryServer.init({
-			dsn: import.meta.env.VITE_SENTRY_DSN,
-			tracesSampleRate: 1.0,
-			profilesSampleRate: 1.0,
-		});
-	})
-	.client(() => {
-		Sentry.init({
-			dsn: import.meta.env.VITE_SENTRY_DSN,
-			integrations: [
-				Sentry.replayIntegration({
-					maskAllText: false,
-					blockAllMedia: false,
-				}),
-				Sentry.tanstackRouterBrowserTracingIntegration(router),
-			],
-			tracesSampleRate: 1.0,
-			replaysSessionSampleRate: 1.0,
-			replaysOnErrorSampleRate: 1.0,
-		});
-	})();
+// createIsomorphicFn()
+// 	.server(() => {
+// 		SentryServer.init({
+// 			dsn: import.meta.env.VITE_SENTRY_DSN,
+// 			tracesSampleRate: 1.0,
+// 			profilesSampleRate: 1.0,
+// 		});
+// 	})
+// 	.client(() => {
+// 		Sentry.init({
+// 			dsn: import.meta.env.VITE_SENTRY_DSN,
+// 			integrations: [
+// 				Sentry.replayIntegration({
+// 					maskAllText: false,
+// 					blockAllMedia: false,
+// 				}),
+// 				Sentry.tanstackRouterBrowserTracingIntegration(router),
+// 			],
+// 			tracesSampleRate: 1.0,
+// 			replaysSessionSampleRate: 1.0,
+// 			replaysOnErrorSampleRate: 1.0,
+// 		});
+// 	})();
 
 // Register the router instance for type safety
 declare module "@tanstack/react-router" {
