@@ -1,10 +1,10 @@
 import { ConvexQueryClient } from "@convex-dev/react-query";
-import * as SentryServer from "@sentry/node";
-import * as Sentry from "@sentry/react";
+// import * as SentryServer from "@sentry/node";
+// import * as Sentry from "@sentry/react";
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { routerWithQueryClient } from "@tanstack/react-router-with-query";
-import { createIsomorphicFn } from "@tanstack/react-start";
+// import { createIsomorphicFn } from "@tanstack/react-start";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { NotFound } from "./components/NotFound";
 import { DefaultCatchBoundary } from "./features/app/DefaultCatchBoundary";
