@@ -5,6 +5,7 @@ import {
 	CreditCard,
 	LogOut,
 	Sparkles,
+	User,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,6 +24,7 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
+import { Link } from "@tanstack/react-router";
 
 export function NavUser({
 	user,
@@ -88,6 +90,12 @@ export function NavUser({
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
+							<DropdownMenuItem asChild>
+								<Link to="/profile">
+									<User className="mr-2" />
+									Profile
+								</Link>
+							</DropdownMenuItem>
 							<DropdownMenuItem>
 								<BadgeCheck />
 								Account

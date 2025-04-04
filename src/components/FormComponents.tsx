@@ -1,14 +1,17 @@
 import { useStore } from "@tanstack/react-form";
 
-import { useFieldContext, useFormContext } from "../hooks/demo.form-context";
+import { useFieldContext, useFormContext } from "../hooks/form-context";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input, type InputProps } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import * as ShadcnSelect from "@/components/ui/select";
 import { Slider as ShadcnSlider } from "@/components/ui/slider";
 import { Switch as ShadcnSwitch } from "@/components/ui/switch";
-import { Textarea as ShadcnTextarea } from "@/components/ui/textarea";
+import {
+	Textarea as ShadcnTextarea,
+	type TextareaProps,
+} from "@/components/ui/textarea";
 
 export function SubscribeButton({ label }: { label: string }) {
 	const form = useFormContext();
@@ -45,10 +48,10 @@ function ErrorMessages({
 export function TextField({
 	label,
 	placeholder,
+	...rest
 }: {
 	label: string;
-	placeholder?: string;
-}) {
+} & InputProps) {
 	const field = useFieldContext<string>();
 	const errors = useStore(field.store, (state) => state.meta.errors);
 
@@ -62,6 +65,7 @@ export function TextField({
 				placeholder={placeholder}
 				onBlur={field.handleBlur}
 				onChange={(e) => field.handleChange(e.target.value)}
+				{...rest}
 			/>
 			{field.state.meta.isTouched && <ErrorMessages errors={errors} />}
 		</div>
@@ -71,10 +75,11 @@ export function TextField({
 export function TextArea({
 	label,
 	rows = 3,
+	...rest
 }: {
 	label: string;
 	rows?: number;
-}) {
+} & TextareaProps) {
 	const field = useFieldContext<string>();
 	const errors = useStore(field.store, (state) => state.meta.errors);
 
@@ -87,6 +92,7 @@ export function TextArea({
 				onBlur={field.handleBlur}
 				rows={rows}
 				onChange={(e) => field.handleChange(e.target.value)}
+				{...rest}
 			/>
 			{field.state.meta.isTouched && <ErrorMessages errors={errors} />}
 		</div>

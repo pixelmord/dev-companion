@@ -17,6 +17,7 @@ import appCss from "../styles.css?url";
 import { DefaultCatchBoundary } from "@/components/DefaultCatchBoundary";
 import { NotFound } from "@/components/NotFound";
 
+import { Toaster } from "@/components/ui/sonner";
 import { getAuth } from "@clerk/tanstack-react-start/server";
 import type { ConvexQueryClient } from "@convex-dev/react-query";
 import type { QueryClient } from "@tanstack/react-query";
@@ -93,6 +94,7 @@ function RootComponent() {
 			<ConvexProviderWithClerk client={context.convexClient} useAuth={useAuth}>
 				<RootDocument>
 					<Outlet />
+					<Toaster />
 					<TanStackRouterDevtools />
 
 					<TanstackQueryLayout />

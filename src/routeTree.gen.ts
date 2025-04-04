@@ -21,6 +21,7 @@ import { Route as DemoStoreImport } from './routes/demo.store'
 import { Route as DemoConvexImport } from './routes/demo.convex'
 import { Route as DemoClerkImport } from './routes/demo.clerk'
 import { Route as AuthedTasksImport } from './routes/_authed/tasks'
+import { Route as AuthedProfileImport } from './routes/_authed/profile'
 import { Route as AuthedDashboardImport } from './routes/_authed/dashboard'
 import { Route as AuthedBoardsImport } from './routes/_authed/boards'
 import { Route as ExampleGuitarsIndexImport } from './routes/example.guitars/index'
@@ -90,6 +91,12 @@ const DemoClerkRoute = DemoClerkImport.update({
 const AuthedTasksRoute = AuthedTasksImport.update({
   id: '/tasks',
   path: '/tasks',
+  getParentRoute: () => AuthedRoute,
+} as any)
+
+const AuthedProfileRoute = AuthedProfileImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AuthedRoute,
 } as any)
 
@@ -183,6 +190,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthedDashboardImport
+      parentRoute: typeof AuthedImport
+    }
+    '/_authed/profile': {
+      id: '/_authed/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthedProfileImport
       parentRoute: typeof AuthedImport
     }
     '/_authed/tasks': {
@@ -317,12 +331,14 @@ const AuthedBoardsRouteWithChildren = AuthedBoardsRoute._addFileChildren(
 interface AuthedRouteChildren {
   AuthedBoardsRoute: typeof AuthedBoardsRouteWithChildren
   AuthedDashboardRoute: typeof AuthedDashboardRoute
+  AuthedProfileRoute: typeof AuthedProfileRoute
   AuthedTasksRoute: typeof AuthedTasksRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedBoardsRoute: AuthedBoardsRouteWithChildren,
   AuthedDashboardRoute: AuthedDashboardRoute,
+  AuthedProfileRoute: AuthedProfileRoute,
   AuthedTasksRoute: AuthedTasksRoute,
 }
 
@@ -334,6 +350,7 @@ export interface FileRoutesByFullPath {
   '': typeof AuthedRouteWithChildren
   '/boards': typeof AuthedBoardsRouteWithChildren
   '/dashboard': typeof AuthedDashboardRoute
+  '/profile': typeof AuthedProfileRoute
   '/tasks': typeof AuthedTasksRoute
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
@@ -357,6 +374,7 @@ export interface FileRoutesByTo {
   '': typeof AuthedRouteWithChildren
   '/boards': typeof AuthedBoardsRouteWithChildren
   '/dashboard': typeof AuthedDashboardRoute
+  '/profile': typeof AuthedProfileRoute
   '/tasks': typeof AuthedTasksRoute
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
@@ -381,6 +399,7 @@ export interface FileRoutesById {
   '/_authed': typeof AuthedRouteWithChildren
   '/_authed/boards': typeof AuthedBoardsRouteWithChildren
   '/_authed/dashboard': typeof AuthedDashboardRoute
+  '/_authed/profile': typeof AuthedProfileRoute
   '/_authed/tasks': typeof AuthedTasksRoute
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
@@ -406,6 +425,7 @@ export interface FileRouteTypes {
     | ''
     | '/boards'
     | '/dashboard'
+    | '/profile'
     | '/tasks'
     | '/demo/clerk'
     | '/demo/convex'
@@ -428,6 +448,7 @@ export interface FileRouteTypes {
     | ''
     | '/boards'
     | '/dashboard'
+    | '/profile'
     | '/tasks'
     | '/demo/clerk'
     | '/demo/convex'
@@ -450,6 +471,7 @@ export interface FileRouteTypes {
     | '/_authed'
     | '/_authed/boards'
     | '/_authed/dashboard'
+    | '/_authed/profile'
     | '/_authed/tasks'
     | '/demo/clerk'
     | '/demo/convex'
@@ -543,6 +565,7 @@ export const routeTree = rootRoute
       "children": [
         "/_authed/boards",
         "/_authed/dashboard",
+        "/_authed/profile",
         "/_authed/tasks"
       ]
     },
@@ -555,6 +578,10 @@ export const routeTree = rootRoute
     },
     "/_authed/dashboard": {
       "filePath": "_authed/dashboard.tsx",
+      "parent": "/_authed"
+    },
+    "/_authed/profile": {
+      "filePath": "_authed/profile.tsx",
       "parent": "/_authed"
     },
     "/_authed/tasks": {

@@ -55,6 +55,88 @@ export const updateUserProfileSchema = v.object({
   })),
 });
 
+// Query to get a user's profile by Clerk ID
+export const getProfile = query({
+  args: { clerkId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .first();
+
+    return user;
+  },
+});
+
+// Mutation to create a new user profile
+export const createProfile = mutation({
+  args: {
+    clerkId: v.string(),
+    name: v.string(),
+    email: v.string(),
+    bio: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Check if profile already exists
+    const existingUser = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .first();
+
+    if (existingUser) {
+      throw new Error("Profile already exists");
+    }
+
+    // Create new profile
+    const userId = await ctx.db.insert("users", {
+      clerkId: args.clerkId,
+      name: args.name,
+      email: args.email,
+      bio: args.bio,
+      avatarUrl: args.avatarUrl,
+      role: "user",
+      preferences: {
+        theme: "system",
+        notifications: true,
+        emailDigest: true,
+      },
+      lastActive: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    return userId;
+  },
+});
+
+// Mutation to update a user's profile
+export const updateProfile = mutation({
+  args: {
+    id: v.id("users"),
+    name: v.string(),
+    email: v.string(),
+    bio: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { id, ...updates } = args;
+
+    // Check if profile exists
+    const existingUser = await ctx.db.get(id);
+    if (!existingUser) {
+      throw new Error("Profile not found");
+    }
+
+    // Update profile
+    await ctx.db.patch(id, {
+      ...updates,
+      updatedAt: Date.now(),
+    });
+
+    return true;
+  },
+});
+
 // Query to get a user by their Clerk ID
 export const getUserByClerkId = query({
   args: { clerkId: v.string() },
@@ -88,16 +170,6 @@ export const createUser = mutation({
   returns: v.id("users"),
   handler: async (ctx, args) => {
     return await UserModel.createNewUser(ctx, args);
-  },
-});
-
-// Mutation to update a user's profile
-export const updateUserProfile = mutation({
-  args: updateUserProfileSchema,
-  returns: v.id("users"),
-  handler: async (ctx, args) => {
-    const { id, ...updates } = args;
-    return await UserModel.updateProfile(ctx, id, updates);
   },
 });
 
