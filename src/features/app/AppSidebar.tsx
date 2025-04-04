@@ -12,8 +12,6 @@ import {
 	SquareTerminal,
 } from "lucide-react";
 
-import { NavProjects } from "@/features/projects/NavProjects";
-import { NavUser } from "@/features/profile/NavUser";
 import {
 	Sidebar,
 	SidebarContent,
@@ -22,8 +20,11 @@ import {
 	SidebarRail,
 } from "@/components/ui/sidebar";
 import { NavMain } from "@/features/app/NavMain";
+import { NavUser } from "@/features/profile/NavUser";
+import { NavProjects } from "@/features/projects/NavProjects";
 import { TeamSwitcher } from "@/features/teams/TeamSwitcher";
 
+import type { Doc } from "@convex-server/_generated/dataModel";
 import { type LinkOptions, linkOptions } from "@tanstack/react-router";
 import type { ComponentProps } from "react";
 
@@ -203,8 +204,10 @@ export type NavigationGroups = Record<
 	}
 >;
 
-export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
-	const user = false;
+export function AppSidebar({
+	userProfile,
+	...props
+}: ComponentProps<typeof Sidebar> & { userProfile: Doc<"users"> }) {
 	return (
 		<Sidebar collapsible="icon" {...props}>
 			<SidebarHeader>
@@ -214,7 +217,9 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
 				<NavMain items={navigationGroups} />
 				<NavProjects projects={data.projects} />
 			</SidebarContent>
-			<SidebarFooter>{!!user && <NavUser user={user} />}</SidebarFooter>
+			<SidebarFooter>
+				{!!userProfile && <NavUser user={userProfile} />}
+			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>
 	);

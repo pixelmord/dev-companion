@@ -18,6 +18,7 @@ import {
 	CardTitle,
 } from "../../components/ui/card";
 import { useAppForm } from "../form/form";
+import { useCreateProfile } from "./profile-queries";
 
 const schema = z.object({
 	name: z.string().min(1, "Full name is required"),
@@ -29,7 +30,7 @@ const schema = z.object({
 export function ProfileSetup() {
 	const { user } = useUser();
 	const navigate = useNavigate();
-	const createProfile = useMutation(api.users.createProfile);
+	const { mutate: createProfile } = useCreateProfile();
 
 	const form = useAppForm({
 		defaultValues: {

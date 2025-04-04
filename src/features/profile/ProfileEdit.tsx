@@ -1,8 +1,5 @@
-import { useUser } from "@clerk/clerk-react";
-import { api } from "@convex-server/_generated/api";
+import { Route } from "@/routes/_authed/profile";
 import type { Id } from "@convex-server/_generated/dataModel";
-import { useMutation, useQuery } from "convex/react";
-import { useEffect } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
@@ -20,6 +17,8 @@ import {
 } from "../../components/ui/card";
 import { useAppForm } from "../form/form";
 
+import { useGetProfile, useUpdateProfile } from "./profile-queries";
+
 const schema = z.object({
 	name: z.string().min(1, "Full name is required"),
 	email: z.string().email("Invalid email address"),
@@ -28,9 +27,9 @@ const schema = z.object({
 });
 
 export function ProfileEdit() {
-	const { user } = useUser();
-	const profile = useQuery(api.users.getProfile, { clerkId: user?.id || "" });
-	const updateProfile = useMutation(api.users.updateProfile);
+	const { userId } = Route.useLoaderData();
+	const { data: profile } = useGetProfile(userId);
+	const { mutate: updateProfile } = useUpdateProfile();
 
 	const form = useAppForm({
 		defaultValues: {
@@ -44,8 +43,11 @@ export function ProfileEdit() {
 		},
 		onSubmit: async ({ value }) => {
 			try {
+				if (!profile) {
+					throw new Error("Profile not found");
+				}
 				await updateProfile({
-					id: profile?._id as Id<"users">,
+					id: profile._id as Id<"users">,
 					...value,
 				});
 				toast.success("Profile updated successfully!");
@@ -55,10 +57,6 @@ export function ProfileEdit() {
 			}
 		},
 	});
-
-	if (!profile) {
-		return <div>Loading...</div>;
-	}
 
 	return (
 		<div className="container mx-auto max-w-2xl p-4">
