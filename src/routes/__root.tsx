@@ -2,14 +2,11 @@ import { ClerkProvider, useAuth } from "@clerk/tanstack-react-start";
 import {
 	HeadContent,
 	Outlet,
-	ScriptOnce,
 	Scripts,
 	createRootRouteWithContext,
 	useRouteContext,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-
-import Header from "../features/public-landing/Header";
 
 import TanstackQueryLayout from "../integrations/tanstack-query/layout";
 
@@ -26,7 +23,6 @@ import { createServerFn } from "@tanstack/react-start";
 import type { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ThemeProvider } from "next-themes";
-import { useEffect } from "react";
 import { getWebRequest } from "vinxi/http";
 
 interface MyRouterContext {
