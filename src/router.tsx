@@ -34,6 +34,9 @@ export function createRouter() {
 		createTanStackRouter({
 			routeTree,
 			defaultPreload: "intent",
+			// react-query will handle data fetching & caching
+			// https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#passing-all-loader-events-to-an-external-cache
+			defaultPreloadStaleTime: 0,
 			defaultErrorComponent: DefaultCatchBoundary,
 			defaultNotFoundComponent: () => <NotFound />,
 			context: { queryClient, convexClient: convex, convexQueryClient },

@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import invariant from "tiny-invariant";
 
+import { Button } from "@/components/ui/button";
 import { CancelButton } from "@/features/trello-board/CancelButton";
 import { SaveButton } from "@/features/trello-board/SaveButton";
 import { Icon } from "../../icons/icons";
@@ -56,7 +57,7 @@ export function NewColumn({
 			</div>
 		</form>
 	) : (
-		<button
+		<Button
 			onClick={() => {
 				setEditing(true);
 			}}
@@ -64,6 +65,6 @@ export function NewColumn({
 			className="ml-2 flex-shrink-0 flex justify-center h-16 w-16 bg-black hover:bg-white bg-opacity-10 hover:bg-opacity-5 rounded-xl"
 		>
 			<Icon name="plus" size="xl" />
-		</button>
+		</Button>
 	);
 }
