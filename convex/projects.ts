@@ -30,6 +30,11 @@ export const projectsTables = {
         v.literal("private")
       ),
     }),
+    vcs: v.object({
+      type: v.union(v.literal("github"), v.literal("gitlab")),
+      url: v.string(),
+    }),
+    resources: v.array(v.id("resources")),
 
     // Audit fields
     createdBy: v.id("users"),

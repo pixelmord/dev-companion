@@ -9,6 +9,7 @@ export const teamsTables = {
 		name: v.string(),
 		description: v.optional(v.string()),
 		visibility: v.union(v.literal("public"), v.literal("private")),
+		avatar: v.optional(v.string()),
 
 		// Ownership and access
 		ownerId: v.id("users"),

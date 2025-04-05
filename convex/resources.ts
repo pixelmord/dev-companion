@@ -246,8 +246,11 @@ export const createResourceSchema = v.object({
   description: v.optional(v.string()),
   type: v.union(
     v.literal("document"),
+    v.literal("blog"),
     v.literal("codeSnippet"),
     v.literal("externalLink"),
+    v.literal("podcast"),
+    v.literal("github"),
     v.literal("feed")
   ),
   projectId: v.id("projects"),
