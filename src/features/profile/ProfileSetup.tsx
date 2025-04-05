@@ -1,10 +1,23 @@
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser } from "@clerk/clerk-react";
 import type { Doc } from "@convex-server/_generated/dataModel";
 import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
@@ -21,6 +34,7 @@ import {
 	CardTitle,
 } from "../../components/ui/card";
 import { useAppForm } from "../form/form";
+import { useFormPersistence } from "../form/use-form-persistence";
 import { TeamManagement } from "./TeamManagement";
 import { useCreateProfile } from "./profile-queries";
 
@@ -44,23 +58,33 @@ const schema = z.object({
 export function ProfileSetup() {
 	const { user } = useUser();
 	const navigate = useNavigate();
-	const { mutate: createProfile } = useCreateProfile();
+	const { mutate: createProfile, isPending } = useCreateProfile();
 	const [activeTab, setActiveTab] = useState<
 		"profile" | "preferences" | "teams"
 	>("profile");
+	const [hasChanges, setHasChanges] = useState(false);
+	const [showDiscardDialog, setShowDiscardDialog] = useState(false);
+	const [nextTab, setNextTab] = useState<
+		"profile" | "preferences" | "teams" | null
+	>(null);
 
-	const form = useAppForm({
-		defaultValues: schema.parse({
+	const defaultValues = useMemo(
+		() => ({
 			name: user?.fullName || "",
 			email: user?.primaryEmailAddress?.emailAddress || "",
 			bio: "",
 			avatarUrl: user?.imageUrl || "",
 			preferences: {
-				theme: "system",
+				theme: "system" as const,
 				notifications: true,
 				emailDigest: false,
 			},
 		}),
+		[user?.fullName, user?.primaryEmailAddress?.emailAddress, user?.imageUrl],
+	);
+
+	const form = useAppForm({
+		defaultValues,
 		validators: {
 			onBlur: ({ value }) => {
 				try {
@@ -85,6 +109,7 @@ export function ProfileSetup() {
 					clerkId: user?.id || "",
 				});
 				toast.success("Profile created successfully!");
+				clearSavedState();
 				navigate({ to: "/dashboard" });
 			} catch (error) {
 				toast.error("Failed to create profile. Please try again.");
@@ -92,6 +117,20 @@ export function ProfileSetup() {
 			}
 		},
 	});
+
+	const { isSaving, clearSavedState } = useFormPersistence({
+		storageKey: `profile-setup-${user?.id}`,
+		onStateChange: () => {
+			setHasChanges(true);
+		},
+	});
+
+	// Track form changes by comparing current values with default values
+	useEffect(() => {
+		const hasFormChanges =
+			JSON.stringify(form.state.values) !== JSON.stringify(defaultValues);
+		setHasChanges(hasFormChanges);
+	}, [form.state.values, defaultValues]);
 
 	// Calculate profile completion percentage
 	const requiredFields = ["name", "email"] as const;
@@ -107,6 +146,15 @@ export function ProfileSetup() {
 			(requiredFields.length * 2 + optionalFields.length)) *
 		100;
 
+	const handleTabChange = (value: string) => {
+		if (hasChanges) {
+			setNextTab(value as "profile" | "preferences" | "teams");
+			setShowDiscardDialog(true);
+			return;
+		}
+		setActiveTab(value as "profile" | "preferences" | "teams");
+	};
+
 	return (
 		<div className="container mx-auto max-w-2xl p-4">
 			<form
@@ -116,26 +164,47 @@ export function ProfileSetup() {
 					form.handleSubmit();
 				}}
 				className="space-y-6"
+				aria-label="Profile setup form"
 			>
 				<Card className="mb-6">
 					<CardHeader>
 						<CardTitle>Complete Your Profile</CardTitle>
 						<CardDescription>
 							Please provide some information about yourself to get started.
+							{isSaving && (
+								<span className="text-muted-foreground ml-2">
+									Saving changes...
+								</span>
+							)}
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-2">
 							<div className="flex justify-between text-sm">
 								<span>Profile Completion</span>
-								<span>{Math.round(completionPercentage)}%</span>
+								<span aria-label="Profile completion percentage">
+									{Math.round(completionPercentage)}%
+								</span>
 							</div>
-							<Progress value={completionPercentage} className="h-2" />
+							<Progress
+								value={completionPercentage}
+								className="h-2"
+								aria-label="Profile completion progress"
+								role="progressbar"
+								aria-valuemin={0}
+								aria-valuemax={100}
+								aria-valuenow={Math.round(completionPercentage)}
+							/>
 						</div>
 					</CardContent>
 				</Card>
 
-				<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+				<Tabs
+					value={activeTab}
+					onValueChange={handleTabChange}
+					className="w-full"
+					aria-label="Profile setup sections"
+				>
 					<TabsList className="grid w-full grid-cols-3">
 						<TabsTrigger value="profile">Profile Information</TabsTrigger>
 						<TabsTrigger value="preferences">Preferences</TabsTrigger>
@@ -149,7 +218,7 @@ export function ProfileSetup() {
 								<CardDescription>Tell us about yourself.</CardDescription>
 							</CardHeader>
 							<CardContent className="space-y-6">
-								<div className="flex justify-center mb-6">
+								<div className="flex flex-col items-center gap-4 mb-6">
 									<Avatar className="w-24 h-24">
 										<AvatarImage
 											src={form.state.values.avatarUrl}
@@ -159,6 +228,17 @@ export function ProfileSetup() {
 											{form.state.values.name.slice(0, 2).toUpperCase()}
 										</AvatarFallback>
 									</Avatar>
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() => {
+											// TODO: Implement avatar upload
+										}}
+										type="button"
+										aria-label="Upload profile picture"
+									>
+										Upload Picture
+									</Button>
 								</div>
 
 								<form.AppField name="name">
@@ -166,6 +246,8 @@ export function ProfileSetup() {
 										<field.TextField
 											label="Full Name"
 											placeholder="Enter your full name"
+											required
+											aria-required="true"
 										/>
 									)}
 								</form.AppField>
@@ -176,6 +258,8 @@ export function ProfileSetup() {
 											label="Email"
 											type="email"
 											placeholder="Enter your email"
+											required
+											aria-required="true"
 										/>
 									)}
 								</form.AppField>
@@ -185,19 +269,20 @@ export function ProfileSetup() {
 										<field.TextArea
 											label="Bio"
 											placeholder="Tell us a bit about yourself"
+											aria-label="Biography"
 										/>
 									)}
 								</form.AppField>
 							</CardContent>
 							<CardFooter className="flex justify-between">
 								<div />
-								<button
+								<Button
 									type="button"
 									onClick={() => setActiveTab("preferences")}
-									className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+									disabled={isPending}
 								>
 									Next: Preferences
-								</button>
+								</Button>
 							</CardFooter>
 						</Card>
 					</TabsContent>
@@ -205,7 +290,7 @@ export function ProfileSetup() {
 					<TabsContent value="preferences">
 						<Card>
 							<CardHeader>
-								<CardTitle>Your Preferences</CardTitle>
+								<CardTitle>User Preferences</CardTitle>
 								<CardDescription>
 									Customize your app experience and notification settings.
 								</CardDescription>
@@ -258,25 +343,90 @@ export function ProfileSetup() {
 								</div>
 							</CardContent>
 							<CardFooter className="flex justify-between">
-								<button
+								<Button
 									type="button"
+									variant="outline"
 									onClick={() => setActiveTab("profile")}
-									className="px-4 py-2 text-sm font-medium text-primary bg-transparent border border-primary rounded-md hover:bg-primary/10"
+									disabled={isPending}
 								>
-									Back to Profile
-								</button>
-								<form.AppForm>
-									<form.SubscribeButton label="Complete Setup" />
-								</form.AppForm>
+									Back
+								</Button>
+								<Button
+									type="button"
+									onClick={() => setActiveTab("teams")}
+									disabled={isPending}
+								>
+									Next: Teams
+								</Button>
 							</CardFooter>
 						</Card>
 					</TabsContent>
 
 					<TabsContent value="teams">
-						<TeamManagement />
+						<Card>
+							<CardHeader>
+								<CardTitle>Team Setup</CardTitle>
+								<CardDescription>
+									Create or join teams to collaborate with others.
+								</CardDescription>
+							</CardHeader>
+							<CardContent>
+								<TeamManagement />
+							</CardContent>
+							<CardFooter className="flex justify-between">
+								<Button
+									type="button"
+									variant="outline"
+									onClick={() => setActiveTab("preferences")}
+									disabled={isPending}
+								>
+									Back
+								</Button>
+								<Button
+									type="submit"
+									disabled={isPending}
+									className="min-w-[120px]"
+								>
+									{isPending ? (
+										<>
+											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											Creating...
+										</>
+									) : (
+										"Complete Setup"
+									)}
+								</Button>
+							</CardFooter>
+						</Card>
 					</TabsContent>
 				</Tabs>
 			</form>
+
+			<AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Discard Changes?</AlertDialogTitle>
+						<AlertDialogDescription>
+							You have unsaved changes. Are you sure you want to discard them?
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={() => {
+								setHasChanges(false);
+								if (nextTab) {
+									setActiveTab(nextTab);
+									setNextTab(null);
+								}
+								setShowDiscardDialog(false);
+							}}
+						>
+							Discard Changes
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	);
 }
