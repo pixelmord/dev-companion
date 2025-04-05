@@ -13,17 +13,6 @@ export const teamsTables = {
 
 		// Ownership and access
 		ownerId: v.id("users"),
-		members: v.array(
-			v.object({
-				userId: v.id("users"),
-				role: v.union(
-					v.literal("owner"),
-					v.literal("admin"),
-					v.literal("member")
-				),
-				joinedAt: v.number(),
-			})
-		),
 
 		// Team settings
 		settings: v.object({
@@ -41,8 +30,20 @@ export const teamsTables = {
 		updatedAt: v.number(),
 	})
 		.index("by_owner", ["ownerId"])
-		.index("by_visibility", ["visibility"])
-		.index("by_member", ["members"]),
+		.index("by_visibility", ["visibility"]),
+
+	teamMembers: defineTable({
+			teamId: v.id("teams"),
+			userId: v.id("users"),
+			role: v.union(
+				v.literal("owner"),
+				v.literal("admin"),
+				v.literal("member")
+			),
+			joinedAt: v.number(),
+		}).index("by_team", ["teamId"])
+			.index("by_user", ["userId"])
+			.index("by_team_and_user", ["teamId", "userId"]),
 
 	teamInvites: defineTable({
 		teamId: v.id("teams"),
@@ -66,7 +67,9 @@ export const teamsTables = {
 		.index("by_team", ["teamId"])
 		.index("by_email", ["invitedEmail"])
 		.index("by_token", ["token"])
-		.index("by_status", ["status"]),
+		.index("by_status", ["status"])
+		.index("by_team_and_status", ["teamId", "status"])
+		.index("by_team_and_email", ["teamId", "invitedEmail"]),
 };
 
 const teamValidator = teamsTables.teams.validator;

@@ -5,6 +5,10 @@ import { useFieldContext, useFormContext } from "./form-context";
 import { Button } from "@/components/ui/button";
 import { Input, type InputProps } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	RadioGroupItem,
+	RadioGroup as ShadcnRadioGroup,
+} from "@/components/ui/radio-group";
 import * as ShadcnSelect from "@/components/ui/select";
 import { Slider as ShadcnSlider } from "@/components/ui/slider";
 import { Switch as ShadcnSwitch } from "@/components/ui/switch";
@@ -157,21 +161,74 @@ export function Slider({ label }: { label: string }) {
 	);
 }
 
-export function Switch({ label }: { label: string }) {
+export function RadioGroup<T extends string>({
+	label,
+	description,
+	options,
+}: {
+	label: string;
+	description?: string;
+	options: Array<{ label: string; value: T }>;
+}) {
+	const field = useFieldContext<T>();
+	const errors = useStore(field.store, (state) => state.meta.errors);
+
+	return (
+		<div className="space-y-4">
+			<div>
+				<Label>{label}</Label>
+				{description && (
+					<p className="text-sm text-muted-foreground">{description}</p>
+				)}
+			</div>
+			<ShadcnRadioGroup
+				className="grid grid-cols-3 gap-4"
+				value={field.state.value}
+				onValueChange={(value) => field.handleChange(value as T)}
+			>
+				{options.map((option) => (
+					<div key={option.value}>
+						<RadioGroupItem
+							value={option.value}
+							id={`${field.name}-${option.value}`}
+							className="peer sr-only"
+						/>
+						<Label
+							htmlFor={`${field.name}-${option.value}`}
+							className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+						>
+							<span>{option.label}</span>
+						</Label>
+					</div>
+				))}
+			</ShadcnRadioGroup>
+			{field.state.meta.isTouched && <ErrorMessages errors={errors} />}
+		</div>
+	);
+}
+
+export function Switch({
+	label,
+	description,
+}: {
+	label: string;
+	description?: string;
+}) {
 	const field = useFieldContext<boolean>();
 	const errors = useStore(field.store, (state) => state.meta.errors);
 
 	return (
-		<div>
-			<div className="flex items-center gap-2">
-				<ShadcnSwitch
-					id={label}
-					onBlur={field.handleBlur}
-					checked={field.state.value}
-					onCheckedChange={(checked) => field.handleChange(checked)}
-				/>
-				<Label htmlFor={label}>{label}</Label>
+		<div className="flex items-center justify-between">
+			<div className="space-y-0.5">
+				<Label>{label}</Label>
+				{description && (
+					<p className="text-sm text-muted-foreground">{description}</p>
+				)}
 			</div>
+			<ShadcnSwitch
+				checked={field.state.value}
+				onCheckedChange={field.setValue}
+			/>
 			{field.state.meta.isTouched && <ErrorMessages errors={errors} />}
 		</div>
 	);

@@ -20,6 +20,7 @@ import { Route as DemoTableImport } from './routes/demo.table'
 import { Route as DemoStoreImport } from './routes/demo.store'
 import { Route as DemoConvexImport } from './routes/demo.convex'
 import { Route as DemoClerkImport } from './routes/demo.clerk'
+import { Route as AuthedTeamsImport } from './routes/_authed/teams'
 import { Route as AuthedTasksImport } from './routes/_authed/tasks'
 import { Route as AuthedProfileImport } from './routes/_authed/profile'
 import { Route as AuthedDashboardImport } from './routes/_authed/dashboard'
@@ -86,6 +87,12 @@ const DemoClerkRoute = DemoClerkImport.update({
   id: '/demo/clerk',
   path: '/demo/clerk',
   getParentRoute: () => rootRoute,
+} as any)
+
+const AuthedTeamsRoute = AuthedTeamsImport.update({
+  id: '/teams',
+  path: '/teams',
+  getParentRoute: () => AuthedRoute,
 } as any)
 
 const AuthedTasksRoute = AuthedTasksImport.update({
@@ -204,6 +211,13 @@ declare module '@tanstack/react-router' {
       path: '/tasks'
       fullPath: '/tasks'
       preLoaderRoute: typeof AuthedTasksImport
+      parentRoute: typeof AuthedImport
+    }
+    '/_authed/teams': {
+      id: '/_authed/teams'
+      path: '/teams'
+      fullPath: '/teams'
+      preLoaderRoute: typeof AuthedTeamsImport
       parentRoute: typeof AuthedImport
     }
     '/demo/clerk': {
@@ -333,6 +347,7 @@ interface AuthedRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedProfileRoute: typeof AuthedProfileRoute
   AuthedTasksRoute: typeof AuthedTasksRoute
+  AuthedTeamsRoute: typeof AuthedTeamsRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
@@ -340,6 +355,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedProfileRoute: AuthedProfileRoute,
   AuthedTasksRoute: AuthedTasksRoute,
+  AuthedTeamsRoute: AuthedTeamsRoute,
 }
 
 const AuthedRouteWithChildren =
@@ -352,6 +368,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthedDashboardRoute
   '/profile': typeof AuthedProfileRoute
   '/tasks': typeof AuthedTasksRoute
+  '/teams': typeof AuthedTeamsRoute
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
   '/demo/store': typeof DemoStoreRoute
@@ -376,6 +393,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthedDashboardRoute
   '/profile': typeof AuthedProfileRoute
   '/tasks': typeof AuthedTasksRoute
+  '/teams': typeof AuthedTeamsRoute
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
   '/demo/store': typeof DemoStoreRoute
@@ -401,6 +419,7 @@ export interface FileRoutesById {
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/profile': typeof AuthedProfileRoute
   '/_authed/tasks': typeof AuthedTasksRoute
+  '/_authed/teams': typeof AuthedTeamsRoute
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
   '/demo/store': typeof DemoStoreRoute
@@ -427,6 +446,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/tasks'
+    | '/teams'
     | '/demo/clerk'
     | '/demo/convex'
     | '/demo/store'
@@ -450,6 +470,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/tasks'
+    | '/teams'
     | '/demo/clerk'
     | '/demo/convex'
     | '/demo/store'
@@ -473,6 +494,7 @@ export interface FileRouteTypes {
     | '/_authed/dashboard'
     | '/_authed/profile'
     | '/_authed/tasks'
+    | '/_authed/teams'
     | '/demo/clerk'
     | '/demo/convex'
     | '/demo/store'
@@ -566,7 +588,8 @@ export const routeTree = rootRoute
         "/_authed/boards",
         "/_authed/dashboard",
         "/_authed/profile",
-        "/_authed/tasks"
+        "/_authed/tasks",
+        "/_authed/teams"
       ]
     },
     "/_authed/boards": {
@@ -586,6 +609,10 @@ export const routeTree = rootRoute
     },
     "/_authed/tasks": {
       "filePath": "_authed/tasks.tsx",
+      "parent": "/_authed"
+    },
+    "/_authed/teams": {
+      "filePath": "_authed/teams.tsx",
       "parent": "/_authed"
     },
     "/demo/clerk": {

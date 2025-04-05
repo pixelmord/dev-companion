@@ -16,6 +16,7 @@ import type {
 import type * as activities from "../activities.js";
 import type * as board from "../board.js";
 import type * as crons from "../crons.js";
+import type * as design_docs from "../design-docs.js";
 import type * as model_activities from "../model/activities.js";
 import type * as model_projects from "../model/projects.js";
 import type * as model_resources from "../model/resources.js";
@@ -41,6 +42,7 @@ declare const fullApi: ApiFromModules<{
   activities: typeof activities;
   board: typeof board;
   crons: typeof crons;
+  "design-docs": typeof design_docs;
   "model/activities": typeof model_activities;
   "model/projects": typeof model_projects;
   "model/resources": typeof model_resources;

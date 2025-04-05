@@ -1,8 +1,23 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import * as TaskModel from "./model/tasks";
-import type { Doc, Id } from "./_generated/dataModel";
+import { defineTable } from "convex/server";
 
+export const tasksTables = {
+	tasks: defineTable({
+		text: v.string(),
+		description: v.optional(v.string()),
+		isCompleted: v.boolean(),
+		teamId: v.optional(v.id("teams")),
+		assignedTo: v.optional(v.id("users")),
+		createdBy: v.id("users"),
+		createdAt: v.number(),
+		updatedAt: v.number(),
+	}).index("by_team", ["teamId"])
+		.index("by_assigned", ["assignedTo"])
+		.index("by_created", ["createdBy"])
+		.index("by_team_and_assigned", ["teamId", "assignedTo"]),
+}
 export const getTasks = query({
 	args: {
 		teamId: v.optional(v.id("teams")),

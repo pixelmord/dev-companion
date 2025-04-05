@@ -78,6 +78,7 @@
     "cmdk": "^1.1.1",
     "commander": "^11.1.0",
     "convex": "^1.22.0",
+    "convex-helpers": "^0.1.77",
     "dotenv": "^16.3.1",
     "embla-carousel-react": "^8.5.2",
     "figlet": "^1.7.0",
