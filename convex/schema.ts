@@ -1,12 +1,11 @@
-import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { defineSchema } from "convex/server";
 import { boardTables } from "./board";
 import { teamsTables } from "./teams";
 import { usersTables } from "./users";
 import { projectsTables } from "./projects";
 import { resourcesTables } from "./resources";
 import { activityTables } from "./activities";
-import { designDocsTables } from "./design-docs";
+import { designDocsTables } from "./designdocs";
 import { tasksTables } from "./tasks";
 import { projectTables } from "./products";
 

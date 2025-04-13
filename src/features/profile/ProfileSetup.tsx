@@ -10,6 +10,8 @@ import {
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,7 +19,7 @@ import { useUser } from "@clerk/clerk-react";
 import type { Doc } from "@convex-server/_generated/dataModel";
 import { useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
@@ -34,9 +36,11 @@ import {
 	CardTitle,
 } from "../../components/ui/card";
 import { useAppForm } from "../form/form";
+import { useFieldContext } from "../form/form-context";
 import { useFormPersistence } from "../form/use-form-persistence";
 import { TeamManagement } from "./TeamManagement";
 import { useCreateProfile } from "./profile-queries";
+import { useAvatarUpload } from "./use-avatar-upload";
 
 export type ProfileCreateSchemaType = Omit<
 	Partial<Doc<"users">>,
@@ -47,18 +51,34 @@ const schema = z.object({
 	name: z.string().min(1, "Full name is required"),
 	email: z.string().email("Invalid email address"),
 	bio: z.string(),
-	avatarUrl: z.string(),
+	avatarUrl: z.string().optional(),
 	preferences: z.object({
-		theme: z.enum(["light", "dark", "system"]).default("system"),
-		notifications: z.boolean().default(true),
-		emailDigest: z.boolean().default(false),
+		theme: z.enum(["light", "dark", "system"]),
+		notifications: z.boolean(),
+		emailDigest: z.boolean(),
 	}),
 });
+
+type ProfileFormValues = z.infer<typeof schema>;
+
+const defaultValues: ProfileFormValues = {
+	name: "",
+	email: "",
+	bio: "",
+	preferences: {
+		theme: "system",
+		notifications: true,
+		emailDigest: true,
+	},
+	avatarUrl: undefined,
+};
 
 export function ProfileSetup() {
 	const { user } = useUser();
 	const navigate = useNavigate();
 	const { mutate: createProfile, isPending } = useCreateProfile();
+	const avatarUpload = useAvatarUpload();
+	const [isUploading, setIsUploading] = useState(false);
 	const [activeTab, setActiveTab] = useState<
 		"profile" | "preferences" | "teams"
 	>("profile");
@@ -68,44 +88,15 @@ export function ProfileSetup() {
 		"profile" | "preferences" | "teams" | null
 	>(null);
 
-	const defaultValues = useMemo(
-		() => ({
-			name: user?.fullName || "",
-			email: user?.primaryEmailAddress?.emailAddress || "",
-			bio: "",
-			avatarUrl: user?.imageUrl || "",
-			preferences: {
-				theme: "system" as const,
-				notifications: true,
-				emailDigest: false,
-			},
-		}),
-		[user?.fullName, user?.primaryEmailAddress?.emailAddress, user?.imageUrl],
-	);
-
 	const form = useAppForm({
 		defaultValues,
 		validators: {
-			onBlur: ({ value }) => {
-				try {
-					schema.parse(value);
-					return {};
-				} catch (error) {
-					if (error instanceof z.ZodError) {
-						return {
-							fields: Object.fromEntries(
-								error.errors.map((err) => [err.path.join("."), err.message]),
-							),
-						};
-					}
-					return {};
-				}
-			},
+			onBlur: schema,
 		},
-		onSubmit: async ({ value }) => {
+		onSubmit: async (formData) => {
 			try {
 				await createProfile({
-					...value,
+					...formData.value,
 					clerkId: user?.id || "",
 				});
 				toast.success("Profile created successfully!");
@@ -118,19 +109,10 @@ export function ProfileSetup() {
 		},
 	});
 
-	const { isSaving, clearSavedState } = useFormPersistence({
-		storageKey: `profile-setup-${user?.id}`,
-		onStateChange: () => {
-			setHasChanges(true);
-		},
+	const { clearSavedState } = useFormPersistence({
+		storageKey: "profile-setup",
+		form,
 	});
-
-	// Track form changes by comparing current values with default values
-	useEffect(() => {
-		const hasFormChanges =
-			JSON.stringify(form.state.values) !== JSON.stringify(defaultValues);
-		setHasChanges(hasFormChanges);
-	}, [form.state.values, defaultValues]);
 
 	// Calculate profile completion percentage
 	const requiredFields = ["name", "email"] as const;
@@ -145,6 +127,35 @@ export function ProfileSetup() {
 		((completedRequired * 2 + completedOptional) /
 			(requiredFields.length * 2 + optionalFields.length)) *
 		100;
+
+	const AvatarField = () => {
+		const field = useFieldContext<string>();
+		return null;
+	};
+
+	const handleAvatarUpload = useCallback(
+		async (event: React.ChangeEvent<HTMLInputElement>) => {
+			const file = event.target.files?.[0];
+			if (!file || !user?.id) return;
+
+			setIsUploading(true);
+			try {
+				const avatarUrl = await avatarUpload.mutateAsync({
+					file,
+					userId: user.id,
+				});
+
+				form.setFieldValue("avatarUrl", avatarUrl);
+				toast.success("Avatar uploaded successfully!");
+			} catch (error) {
+				console.error("Error uploading avatar:", error);
+				toast.error("Failed to upload avatar");
+			} finally {
+				setIsUploading(false);
+			}
+		},
+		[user?.id, avatarUpload, form],
+	);
 
 	const handleTabChange = (value: string) => {
 		if (hasChanges) {
@@ -171,7 +182,7 @@ export function ProfileSetup() {
 						<CardTitle>Complete Your Profile</CardTitle>
 						<CardDescription>
 							Please provide some information about yourself to get started.
-							{isSaving && (
+							{isPending && (
 								<span className="text-muted-foreground ml-2">
 									Saving changes...
 								</span>
@@ -228,38 +239,81 @@ export function ProfileSetup() {
 											{form.state.values.name.slice(0, 2).toUpperCase()}
 										</AvatarFallback>
 									</Avatar>
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => {
-											// TODO: Implement avatar upload
-										}}
-										type="button"
-										aria-label="Upload profile picture"
-									>
-										Upload Picture
-									</Button>
+									<div className="flex flex-col items-center gap-2">
+										<Label htmlFor="avatar-upload" className="cursor-pointer">
+											<div className="flex items-center gap-2">
+												<Button
+													variant="outline"
+													size="sm"
+													type="button"
+													disabled={isUploading}
+													aria-label="Upload profile picture"
+												>
+													{isUploading ? (
+														<>
+															<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+															Uploading...
+														</>
+													) : (
+														"Upload Picture"
+													)}
+												</Button>
+											</div>
+											<Input
+												id="avatar-upload"
+												type="file"
+												accept="image/*"
+												className="hidden"
+												onChange={handleAvatarUpload}
+												disabled={isUploading}
+											/>
+										</Label>
+										<p className="text-xs text-muted-foreground">
+											Recommended: Square image, at least 256x256 pixels
+										</p>
+									</div>
 								</div>
 
-								<form.AppField name="name">
+								<form.AppField
+									name="name"
+									validators={{
+										onBlur: ({ value }) => {
+											if (!value || value.trim().length === 0) {
+												return "Full name is required";
+											}
+											return undefined;
+										},
+									}}
+								>
 									{(field) => (
 										<field.TextField
 											label="Full Name"
 											placeholder="Enter your full name"
-											required
-											aria-required="true"
 										/>
 									)}
 								</form.AppField>
 
-								<form.AppField name="email">
+								<form.AppField
+									name="email"
+									validators={{
+										onBlur: ({ value }) => {
+											if (!value || value.trim().length === 0) {
+												return "Email is required";
+											}
+											if (
+												!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value)
+											) {
+												return "Invalid email address";
+											}
+											return undefined;
+										},
+									}}
+								>
 									{(field) => (
 										<field.TextField
 											label="Email"
+											placeholder="Enter your email address"
 											type="email"
-											placeholder="Enter your email"
-											required
-											aria-required="true"
 										/>
 									)}
 								</form.AppField>
@@ -268,8 +322,8 @@ export function ProfileSetup() {
 									{(field) => (
 										<field.TextArea
 											label="Bio"
-											placeholder="Tell us a bit about yourself"
-											aria-label="Biography"
+											placeholder="Tell us about yourself"
+											rows={4}
 										/>
 									)}
 								</form.AppField>
@@ -306,6 +360,7 @@ export function ProfileSetup() {
 											{(field) => (
 												<field.RadioGroup
 													label="Theme"
+													description="Choose your preferred theme"
 													options={[
 														{ label: "Light", value: "light" },
 														{ label: "Dark", value: "dark" },
@@ -324,8 +379,8 @@ export function ProfileSetup() {
 											<form.AppField name="preferences.notifications">
 												{(field) => (
 													<field.Switch
-														label="Push Notifications"
-														description="Receive notifications about updates and activity."
+														label="Enable Notifications"
+														description="Receive notifications about important updates"
 													/>
 												)}
 											</form.AppField>
@@ -334,7 +389,7 @@ export function ProfileSetup() {
 												{(field) => (
 													<field.Switch
 														label="Email Digest"
-														description="Receive weekly email summaries of your activity."
+														description="Receive weekly email updates"
 													/>
 												)}
 											</form.AppField>

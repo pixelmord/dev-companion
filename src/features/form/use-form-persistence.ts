@@ -1,15 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { useFormContext } from "./form-context";
+import type { useAppForm } from "./form";
 
-export function useFormPersistence({
+export function useFormPersistence<
+	TFieldValues extends Record<string, unknown>,
+>({
 	storageKey,
 	onStateChange,
+	form,
 }: {
 	storageKey: string;
-	onStateChange?: (state: unknown) => void;
+	onStateChange?: (state: TFieldValues) => void;
+	form: ReturnType<typeof useAppForm>;
 }) {
-	const form = useFormContext();
+	if (!form) {
+		throw new Error("Form context is required for useFormPersistence");
+	}
 	const [isSaving, setIsSaving] = useState(false);
 	const formState = form.state.values;
 
@@ -18,9 +24,12 @@ export function useFormPersistence({
 		const savedState = localStorage.getItem(storageKey);
 		if (savedState) {
 			try {
-				const parsedState = JSON.parse(savedState) as Record<string, unknown>;
+				const parsedState = JSON.parse(savedState) as TFieldValues;
 				for (const [key, value] of Object.entries(parsedState)) {
-					form.setFieldValue(key as keyof typeof form.state.values, value);
+					form.setFieldValue(
+						key as keyof TFieldValues,
+						value as TFieldValues[keyof TFieldValues],
+					);
 				}
 			} catch (error) {
 				console.error("Failed to restore form state:", error);
@@ -30,7 +39,7 @@ export function useFormPersistence({
 
 	// Debounced save function
 	const saveState = useDebouncedCallback(
-		(state: unknown) => {
+		(state: TFieldValues) => {
 			try {
 				localStorage.setItem(storageKey, JSON.stringify(state));
 				onStateChange?.(state);
