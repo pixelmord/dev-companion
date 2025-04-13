@@ -7,12 +7,12 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed/profile")({
 	component: ProfilePage,
-	loader: async ({ context: { userId, queryClient } }) => {
+	loader: async ({ context: { clerkId, queryClient } }) => {
 		const userProfile = await queryClient.ensureQueryData(
-			convexQuery(api.users.getProfile, { clerkId: userId || "" }),
+			convexQuery(api.users.getProfile, { clerkId }),
 		);
 		return {
-			userId,
+			userId: userProfile?._id,
 			userProfile,
 		};
 	},

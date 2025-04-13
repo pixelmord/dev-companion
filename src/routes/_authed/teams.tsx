@@ -7,6 +7,7 @@ export const Route = createFileRoute("/_authed/teams")({
 });
 
 function TeamsPage() {
+	const { userId } = Route.useRouteContext();
 	return (
 		<ContentLayout
 			breadcrumbs={{
@@ -25,7 +26,7 @@ function TeamsPage() {
 					</p>
 				</div>
 
-				<TeamManagement />
+				<TeamManagement userId={userId} />
 			</div>
 		</ContentLayout>
 	);

@@ -10,6 +10,7 @@ import {
 	PieChart,
 	Settings2,
 	SquareTerminal,
+	Users,
 } from "lucide-react";
 
 import {
@@ -166,6 +167,17 @@ const navigationGroups = {
 	platform: {
 		label: "Platform",
 		items: [
+			{
+				title: "Teams",
+				icon: Users,
+				isOpen: true,
+				links: linkOptions([
+					{
+						to: "/teams",
+						label: "Teams",
+					},
+				]),
+			},
 			{
 				title: "Tools",
 				icon: Bot,

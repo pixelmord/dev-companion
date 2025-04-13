@@ -22,6 +22,8 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { useUser } from "@clerk/clerk-react";
 import { api } from "@convex-server/_generated/api";
+import type { Id } from "@convex-server/_generated/dataModel";
+import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -39,22 +41,19 @@ const createTeamSchema = z.object({
 	}),
 });
 
-type CreateTeamValues = z.infer<typeof createTeamSchema>;
-
-export function TeamManagement() {
-	const { user } = useUser();
+export function TeamManagement({ userId }: { userId: Id<"users"> }) {
 	const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
 	const createTeam = useMutation(api.teams.createTeam);
-	const userTeams = useQuery(api.teams.getUserTeams, { userId: user?.id });
+	const userTeams = useQuery(api.teams.getUserTeams, { userId: userId });
 
 	const form = useAppForm({
 		defaultValues: {
 			name: "",
 			description: "",
-			visibility: "private" as const,
+			visibility: "private",
 			settings: {
 				allowInvites: true,
-				defaultRole: "member" as const,
+				defaultRole: "member",
 				notificationsEnabled: true,
 			},
 		},
@@ -76,13 +75,12 @@ export function TeamManagement() {
 			},
 		},
 		onSubmit: async ({ value }) => {
+			console.log(value);
 			try {
+				const values = createTeamSchema.parse(value);
 				await createTeam({
-					name: value.name,
-					description: value.description,
-					visibility: value.visibility,
-					ownerId: user?.id || "",
-					settings: value.settings,
+					...values,
+					ownerId: userId,
 				});
 				toast.success("Team created successfully!");
 				setIsCreateTeamOpen(false);
@@ -129,7 +127,9 @@ export function TeamManagement() {
 															: "Private - Only members can access"}
 													</p>
 												</div>
-												<Button variant="outline">Manage Team</Button>
+												<Link to="/teams/$teamId" params={{ teamId: team._id }}>
+													<Button variant="outline">Manage Team</Button>
+												</Link>
 											</div>
 										</CardContent>
 									</Card>
@@ -140,17 +140,17 @@ export function TeamManagement() {
 				</CardContent>
 				<CardFooter>
 					<Dialog open={isCreateTeamOpen} onOpenChange={setIsCreateTeamOpen}>
-						<DialogTrigger asChild>
-							<Button>Create New Team</Button>
-						</DialogTrigger>
-						<DialogContent className="sm:max-w-[425px]">
-							<form
-								onSubmit={(e) => {
-									e.preventDefault();
-									e.stopPropagation();
-									form.handleSubmit();
-								}}
-							>
+						<form
+							onSubmit={(e) => {
+								e.preventDefault();
+								e.stopPropagation();
+								form.handleSubmit();
+							}}
+						>
+							<DialogTrigger asChild>
+								<Button>Create New Team</Button>
+							</DialogTrigger>
+							<DialogContent className="sm:max-w-[425px]">
 								<DialogHeader>
 									<DialogTitle>Create New Team</DialogTitle>
 									<DialogDescription>
@@ -312,8 +312,8 @@ export function TeamManagement() {
 										<form.SubscribeButton label="Create Team" />
 									</form.AppForm>
 								</DialogFooter>
-							</form>
-						</DialogContent>
+							</DialogContent>
+						</form>
 					</Dialog>
 				</CardFooter>
 			</Card>

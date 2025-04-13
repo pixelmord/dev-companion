@@ -72,7 +72,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 		}
 
 		return {
-			userId,
+			clerkId: userId,
 			token,
 		};
 	},

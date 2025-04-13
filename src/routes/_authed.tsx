@@ -7,8 +7,8 @@ import { api } from "@convex-server/_generated/api";
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed")({
-	beforeLoad: ({ context, location }) => {
-		if (!context.userId) {
+	beforeLoad: async ({ context: { clerkId, queryClient }, location }) => {
+		if (!clerkId) {
 			throw redirect({
 				to: "/sign-in/$",
 				search: {
@@ -16,17 +16,16 @@ export const Route = createFileRoute("/_authed")({
 				},
 			});
 		}
-		return {
-			userId: context.userId,
-		};
-	},
-	loader: async ({ context: { userId, queryClient } }) => {
 		const userProfile = await queryClient.ensureQueryData(
-			convexQuery(api.users.getProfile, { clerkId: userId || "" }),
+			convexQuery(api.users.getProfile, { clerkId: clerkId }),
 		);
+		if (!userProfile) {
+			throw redirect({ to: "/profile" });
+		}
 		return {
-			userId,
+			clerkId,
 			userProfile,
+			userId: userProfile._id,
 		};
 	},
 	pendingComponent: () => <Loader />,
@@ -34,11 +33,7 @@ export const Route = createFileRoute("/_authed")({
 });
 
 function RouteComponent() {
-	const { userProfile } = Route.useLoaderData();
-
-	if (!userProfile) {
-		throw redirect({ to: "/profile" });
-	}
+	const { userProfile } = Route.useRouteContext();
 
 	return (
 		<SidebarProvider>

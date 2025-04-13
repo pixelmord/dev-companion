@@ -81,6 +81,11 @@ export const createTeamSchema = v.object({
 	description: v.optional(v.string()),
 	visibility: v.union(v.literal("public"), v.literal("private")),
 	ownerId: v.id("users"),
+	settings: v.object({
+		allowInvites: v.boolean(),
+		defaultRole: v.union(v.literal("admin"), v.literal("member")),
+		notificationsEnabled: v.boolean(),
+	}),
 });
 
 // Validator for updating a team
@@ -376,5 +381,54 @@ export const declineInvite = mutation({
 
 		// Decline the invite
 		return await TeamModel.declineTeamInvite(ctx, token);
+	},
+});
+
+// Query to get all members of a specific team
+export const getTeamMembers = query({
+	args: { teamId: v.id("teams") },
+	returns: v.array(
+		v.object({
+			userId: v.id("users"),
+			name: v.string(),
+			email: v.string(),
+			avatarUrl: v.optional(v.string()),
+			role: v.union(
+				v.literal("owner"),
+				v.literal("admin"),
+				v.literal("member")
+			),
+		})
+	),
+	handler: async (ctx, args) => {
+		// Fetch team memberships for the given teamId
+		const teamMemberships = await ctx.db
+			.query("teamMembers")
+			.withIndex("by_team", (q) => q.eq("teamId", args.teamId))
+			.collect();
+
+		// Fetch user details for each member
+		const memberDetails = await Promise.all(
+			teamMemberships.map(async (membership) => {
+				const user = await ctx.db.get(membership.userId);
+				if (!user) {
+					// Handle case where user might not exist (though unlikely in consistent DB)
+					console.warn(`User not found for membership: ${membership._id}`);
+					return null;
+				}
+				return {
+					userId: user._id,
+					name: user.name,
+					email: user.email,
+					avatarUrl: user.avatarUrl,
+					role: membership.role,
+				};
+			})
+		);
+
+		// Filter out any null results (if user fetch failed)
+		return memberDetails.filter((details) => details !== null) as NonNullable<
+			typeof memberDetails[number]
+		>[];
 	},
 });

@@ -32,6 +32,7 @@ import { Route as DemoStartApiRequestImport } from './routes/demo.start.api-requ
 import { Route as DemoSentryTestingImport } from './routes/demo.sentry.testing'
 import { Route as DemoFormSimpleImport } from './routes/demo.form.simple'
 import { Route as DemoFormAddressImport } from './routes/demo.form.address'
+import { Route as AuthedTeamsTeamIdImport } from './routes/_authed/teams.$teamId'
 import { Route as AuthedBoardsBoardIdImport } from './routes/_authed/boards.$boardId'
 
 // Create/Update Routes
@@ -161,6 +162,12 @@ const DemoFormAddressRoute = DemoFormAddressImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const AuthedTeamsTeamIdRoute = AuthedTeamsTeamIdImport.update({
+  id: '/$teamId',
+  path: '/$teamId',
+  getParentRoute: () => AuthedTeamsRoute,
+} as any)
+
 const AuthedBoardsBoardIdRoute = AuthedBoardsBoardIdImport.update({
   id: '/$boardId',
   path: '/$boardId',
@@ -276,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedBoardsBoardIdImport
       parentRoute: typeof AuthedBoardsImport
     }
+    '/_authed/teams/$teamId': {
+      id: '/_authed/teams/$teamId'
+      path: '/$teamId'
+      fullPath: '/teams/$teamId'
+      preLoaderRoute: typeof AuthedTeamsTeamIdImport
+      parentRoute: typeof AuthedTeamsImport
+    }
     '/demo/form/address': {
       id: '/demo/form/address'
       path: '/demo/form/address'
@@ -342,12 +356,24 @@ const AuthedBoardsRouteWithChildren = AuthedBoardsRoute._addFileChildren(
   AuthedBoardsRouteChildren,
 )
 
+interface AuthedTeamsRouteChildren {
+  AuthedTeamsTeamIdRoute: typeof AuthedTeamsTeamIdRoute
+}
+
+const AuthedTeamsRouteChildren: AuthedTeamsRouteChildren = {
+  AuthedTeamsTeamIdRoute: AuthedTeamsTeamIdRoute,
+}
+
+const AuthedTeamsRouteWithChildren = AuthedTeamsRoute._addFileChildren(
+  AuthedTeamsRouteChildren,
+)
+
 interface AuthedRouteChildren {
   AuthedBoardsRoute: typeof AuthedBoardsRouteWithChildren
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedProfileRoute: typeof AuthedProfileRoute
   AuthedTasksRoute: typeof AuthedTasksRoute
-  AuthedTeamsRoute: typeof AuthedTeamsRoute
+  AuthedTeamsRoute: typeof AuthedTeamsRouteWithChildren
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
@@ -355,7 +381,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedProfileRoute: AuthedProfileRoute,
   AuthedTasksRoute: AuthedTasksRoute,
-  AuthedTeamsRoute: AuthedTeamsRoute,
+  AuthedTeamsRoute: AuthedTeamsRouteWithChildren,
 }
 
 const AuthedRouteWithChildren =
@@ -368,7 +394,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthedDashboardRoute
   '/profile': typeof AuthedProfileRoute
   '/tasks': typeof AuthedTasksRoute
-  '/teams': typeof AuthedTeamsRoute
+  '/teams': typeof AuthedTeamsRouteWithChildren
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
   '/demo/store': typeof DemoStoreRoute
@@ -377,6 +403,7 @@ export interface FileRoutesByFullPath {
   '/example/chat': typeof ExampleChatRoute
   '/sign-in/$': typeof SignInSplatRoute
   '/boards/$boardId': typeof AuthedBoardsBoardIdRoute
+  '/teams/$teamId': typeof AuthedTeamsTeamIdRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
   '/demo/sentry/testing': typeof DemoSentryTestingRoute
@@ -393,7 +420,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthedDashboardRoute
   '/profile': typeof AuthedProfileRoute
   '/tasks': typeof AuthedTasksRoute
-  '/teams': typeof AuthedTeamsRoute
+  '/teams': typeof AuthedTeamsRouteWithChildren
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
   '/demo/store': typeof DemoStoreRoute
@@ -402,6 +429,7 @@ export interface FileRoutesByTo {
   '/example/chat': typeof ExampleChatRoute
   '/sign-in/$': typeof SignInSplatRoute
   '/boards/$boardId': typeof AuthedBoardsBoardIdRoute
+  '/teams/$teamId': typeof AuthedTeamsTeamIdRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
   '/demo/sentry/testing': typeof DemoSentryTestingRoute
@@ -419,7 +447,7 @@ export interface FileRoutesById {
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/profile': typeof AuthedProfileRoute
   '/_authed/tasks': typeof AuthedTasksRoute
-  '/_authed/teams': typeof AuthedTeamsRoute
+  '/_authed/teams': typeof AuthedTeamsRouteWithChildren
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
   '/demo/store': typeof DemoStoreRoute
@@ -428,6 +456,7 @@ export interface FileRoutesById {
   '/example/chat': typeof ExampleChatRoute
   '/sign-in/$': typeof SignInSplatRoute
   '/_authed/boards/$boardId': typeof AuthedBoardsBoardIdRoute
+  '/_authed/teams/$teamId': typeof AuthedTeamsTeamIdRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
   '/demo/sentry/testing': typeof DemoSentryTestingRoute
@@ -455,6 +484,7 @@ export interface FileRouteTypes {
     | '/example/chat'
     | '/sign-in/$'
     | '/boards/$boardId'
+    | '/teams/$teamId'
     | '/demo/form/address'
     | '/demo/form/simple'
     | '/demo/sentry/testing'
@@ -479,6 +509,7 @@ export interface FileRouteTypes {
     | '/example/chat'
     | '/sign-in/$'
     | '/boards/$boardId'
+    | '/teams/$teamId'
     | '/demo/form/address'
     | '/demo/form/simple'
     | '/demo/sentry/testing'
@@ -503,6 +534,7 @@ export interface FileRouteTypes {
     | '/example/chat'
     | '/sign-in/$'
     | '/_authed/boards/$boardId'
+    | '/_authed/teams/$teamId'
     | '/demo/form/address'
     | '/demo/form/simple'
     | '/demo/sentry/testing'
@@ -613,7 +645,10 @@ export const routeTree = rootRoute
     },
     "/_authed/teams": {
       "filePath": "_authed/teams.tsx",
-      "parent": "/_authed"
+      "parent": "/_authed",
+      "children": [
+        "/_authed/teams/$teamId"
+      ]
     },
     "/demo/clerk": {
       "filePath": "demo.clerk.tsx"
@@ -639,6 +674,10 @@ export const routeTree = rootRoute
     "/_authed/boards/$boardId": {
       "filePath": "_authed/boards.$boardId.tsx",
       "parent": "/_authed/boards"
+    },
+    "/_authed/teams/$teamId": {
+      "filePath": "_authed/teams.$teamId.tsx",
+      "parent": "/_authed/teams"
     },
     "/demo/form/address": {
       "filePath": "demo.form.address.tsx"

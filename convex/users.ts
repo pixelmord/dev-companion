@@ -117,6 +117,11 @@ export const updateProfile = mutation({
     email: v.string(),
     bio: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
+    preferences: v.optional(v.object({
+      theme: v.union(v.literal("light"), v.literal("dark"), v.literal("system")),
+      notifications: v.boolean(),
+      emailDigest: v.boolean(),
+    })),
   },
   handler: async (ctx, args) => {
     const { id, ...updates } = args;

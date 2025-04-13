@@ -7,7 +7,6 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,11 +14,12 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Route } from "@/routes/_authed/profile";
 import { useUser } from "@clerk/clerk-react";
-import type { Doc } from "@convex-server/_generated/dataModel";
+import type { Doc, Id } from "@convex-server/_generated/dataModel";
 import { useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
@@ -36,8 +36,6 @@ import {
 	CardTitle,
 } from "../../components/ui/card";
 import { useAppForm } from "../form/form";
-import { useFieldContext } from "../form/form-context";
-import { useFormPersistence } from "../form/use-form-persistence";
 import { TeamManagement } from "./TeamManagement";
 import { useCreateProfile } from "./profile-queries";
 import { useAvatarUpload } from "./use-avatar-upload";
@@ -74,6 +72,7 @@ const defaultValues: ProfileFormValues = {
 };
 
 export function ProfileSetup() {
+	const { userId } = Route.useRouteContext();
 	const { user } = useUser();
 	const navigate = useNavigate();
 	const { mutate: createProfile, isPending } = useCreateProfile();
@@ -97,10 +96,9 @@ export function ProfileSetup() {
 			try {
 				await createProfile({
 					...formData.value,
-					clerkId: user?.id || "",
+					clerkId: userId,
 				});
 				toast.success("Profile created successfully!");
-				clearSavedState();
 				navigate({ to: "/dashboard" });
 			} catch (error) {
 				toast.error("Failed to create profile. Please try again.");
@@ -109,40 +107,31 @@ export function ProfileSetup() {
 		},
 	});
 
-	const { clearSavedState } = useFormPersistence({
-		storageKey: "profile-setup",
-		form,
-	});
-
 	// Calculate profile completion percentage
 	const requiredFields = ["name", "email"] as const;
 	const optionalFields = ["bio", "avatarUrl"] as const;
 	const completedRequired = requiredFields.filter(
 		(field) => form.state.values[field]?.length > 0,
 	).length;
-	const completedOptional = optionalFields.filter(
-		(field) => form.state.values[field]?.length > 0,
-	).length;
+	const completedOptional = optionalFields.filter((field) => {
+		const value = form.state.values[field];
+		return typeof value === "string" && value.length > 0;
+	}).length;
 	const completionPercentage =
 		((completedRequired * 2 + completedOptional) /
 			(requiredFields.length * 2 + optionalFields.length)) *
 		100;
 
-	const AvatarField = () => {
-		const field = useFieldContext<string>();
-		return null;
-	};
-
 	const handleAvatarUpload = useCallback(
 		async (event: React.ChangeEvent<HTMLInputElement>) => {
 			const file = event.target.files?.[0];
-			if (!file || !user?.id) return;
+			if (!file) return;
 
 			setIsUploading(true);
 			try {
 				const avatarUrl = await avatarUpload.mutateAsync({
 					file,
-					userId: user.id,
+					userId,
 				});
 
 				form.setFieldValue("avatarUrl", avatarUrl);
@@ -154,7 +143,7 @@ export function ProfileSetup() {
 				setIsUploading(false);
 			}
 		},
-		[user?.id, avatarUpload, form],
+		[userId, avatarUpload, form],
 	);
 
 	const handleTabChange = (value: string) => {
@@ -426,7 +415,7 @@ export function ProfileSetup() {
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
-								<TeamManagement />
+								<TeamManagement userId={userId as Id<"users">} />
 							</CardContent>
 							<CardFooter className="flex justify-between">
 								<Button
