@@ -223,7 +223,7 @@ export function AppSidebar({
 	return (
 		<Sidebar collapsible="icon" {...props}>
 			<SidebarHeader>
-				<TeamSwitcher teams={data.teams} />
+				<TeamSwitcher />
 			</SidebarHeader>
 			<SidebarContent>
 				<NavMain items={navigationGroups} />
