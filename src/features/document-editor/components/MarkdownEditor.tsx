@@ -13,6 +13,7 @@ import React, { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import { ClientOnly } from "./ClientOnly";
 import { MarkdownToolbar } from "./MarkdownToolbar";
+import { ScrollablePreview } from "./ScrollablePreview";
 
 export type MarkdownEditorProps = {
 	initialValue?: string;
@@ -260,14 +261,18 @@ export function MarkdownEditor({
 				onRedo={handleRedo}
 			/>
 
-			<div className="flex-1">
+			<div className="flex-1 overflow-hidden">
 				<ResizablePanelGroup
 					direction="horizontal"
-					className="w-full h-full rounded-lg"
+					className="w-full h-full overflow-hidden"
 				>
 					{/* Editor Panel */}
-					<ResizablePanel defaultSize={50} minSize={30}>
-						<div className="h-full">
+					<ResizablePanel
+						defaultSize={50}
+						minSize={30}
+						className="overflow-hidden"
+					>
+						<div className="h-full w-full overflow-hidden">
 							<ClientOnly fallback={<Skeleton className="h-full w-full" />}>
 								<Editor
 									height="100%"
@@ -294,12 +299,12 @@ export function MarkdownEditor({
 					<ResizableHandle withHandle />
 
 					{/* Preview Panel */}
-					<ResizablePanel defaultSize={50} minSize={30}>
-						<Card className="h-full overflow-auto border-0 p-6 bg-card">
-							<div className="prose prose-slate dark:prose-invert max-w-none">
-								<ReactMarkdown>{markdownValue}</ReactMarkdown>
-							</div>
-						</Card>
+					<ResizablePanel
+						defaultSize={50}
+						minSize={30}
+						className="overflow-hidden"
+					>
+						<ScrollablePreview content={markdownValue} />
 					</ResizablePanel>
 				</ResizablePanelGroup>
 			</div>
