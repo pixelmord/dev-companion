@@ -33,8 +33,8 @@ const schema = z.object({
 });
 
 export function ProfileEdit() {
-	const { userId } = Route.useLoaderData();
-	const { data: profile } = useGetProfile(userId);
+	const { clerkId } = Route.useRouteContext();
+	const { data: profile } = useGetProfile(clerkId);
 	const { mutate: updateProfile } = useUpdateProfile();
 
 	const form = useAppForm({

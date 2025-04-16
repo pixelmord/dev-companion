@@ -2,6 +2,7 @@ import { useStore } from "@tanstack/react-form";
 
 import { useFieldContext, useFormContext } from "./form-context";
 
+import { Spinner } from "@/components/Spinner";
 import { Button } from "@/components/ui/button";
 import { Input, type InputProps } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,14 +17,13 @@ import {
 	Textarea as ShadcnTextarea,
 	type TextareaProps,
 } from "@/components/ui/textarea";
-
 export function SubscribeButton({ label }: { label: string }) {
 	const form = useFormContext();
 	return (
 		<form.Subscribe selector={(state) => state.isSubmitting}>
 			{(isSubmitting) => (
 				<Button type="submit" disabled={isSubmitting}>
-					{label}
+					{isSubmitting ? <Spinner /> : label}
 				</Button>
 			)}
 		</form.Subscribe>
@@ -61,7 +61,7 @@ export function TextField({
 
 	return (
 		<div>
-			<Label htmlFor={label} className="mb-2 text-xl font-bold">
+			<Label htmlFor={label} className="mb-2">
 				{label}
 			</Label>
 			<Input
@@ -89,7 +89,9 @@ export function TextArea({
 
 	return (
 		<div>
-			<Label htmlFor={label}>{label}</Label>
+			<Label htmlFor={label} className="mb-2">
+				{label}
+			</Label>
 			<ShadcnTextarea
 				id={label}
 				value={field.state.value}

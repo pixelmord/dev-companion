@@ -2,7 +2,7 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { TeamManagement } from "@/features/profile/TeamManagement";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_authed/teams")({
+export const Route = createFileRoute("/_authed/teams/")({
 	component: TeamsPage,
 });
 

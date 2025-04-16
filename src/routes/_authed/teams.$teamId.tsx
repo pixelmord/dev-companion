@@ -47,8 +47,6 @@ const inviteSchema = z.object({
 	role: z.enum(["admin", "member"]),
 });
 
-type InviteFormValues = z.infer<typeof inviteSchema>;
-
 function TeamDetailsComponent() {
 	const { teamId } = Route.useParams();
 	const team = useQuery(api.teams.getTeam, { id: teamId as Id<"teams"> });
@@ -63,7 +61,7 @@ function TeamDetailsComponent() {
 		name: string;
 	} | null>(null);
 
-	const inviteForm = useAppForm({
+	const form = useAppForm({
 		defaultValues: {
 			invitedEmail: "",
 			role: "member",
@@ -85,7 +83,7 @@ function TeamDetailsComponent() {
 				toast.success(
 					`Invitation sent to ${validationResult.data.invitedEmail}`,
 				);
-				inviteForm.reset();
+				form.reset();
 				// TODO: Optionally refetch invites list or team data
 			} catch (error) {
 				console.error("Failed to send invite:", error);
@@ -266,11 +264,11 @@ function TeamDetailsComponent() {
 							onSubmit={(e) => {
 								e.preventDefault();
 								e.stopPropagation();
-								inviteForm.handleSubmit();
+								form.handleSubmit();
 							}}
 							className="space-y-4 max-w-md"
 						>
-							<inviteForm.AppField
+							<form.AppField
 								name="invitedEmail"
 								validators={{
 									onChange: ({ value }) => {
@@ -289,21 +287,18 @@ function TeamDetailsComponent() {
 										type="email"
 									/>
 								)}
-							</inviteForm.AppField>
+							</form.AppField>
 
-							<inviteForm.AppField name="role">
+							<form.AppField name="role">
 								{/* Use raw component to bypass potential type issues with field component */}
 								{() => (
 									<div className="space-y-2">
 										<Label>Role</Label>
 										<RadioGroup
 											className="grid grid-cols-2 gap-4"
-											value={inviteForm.state.values.role}
+											value={form.state.values.role}
 											onValueChange={(value) =>
-												inviteForm.setFieldValue(
-													"role",
-													value as "admin" | "member",
-												)
+												form.setFieldValue("role", value as "admin" | "member")
 											}
 										>
 											<div>
@@ -335,9 +330,10 @@ function TeamDetailsComponent() {
 										</RadioGroup>
 									</div>
 								)}
-							</inviteForm.AppField>
-
-							<inviteForm.SubscribeButton label="Send Invitation" />
+							</form.AppField>
+							<form.AppForm>
+								<form.SubscribeButton label="Send Invitation" />
+							</form.AppForm>
 						</form>
 					</div>
 				</CardContent>

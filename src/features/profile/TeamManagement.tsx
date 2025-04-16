@@ -20,7 +20,6 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { useUser } from "@clerk/clerk-react";
 import { api } from "@convex-server/_generated/api";
 import type { Id } from "@convex-server/_generated/dataModel";
 import { Link } from "@tanstack/react-router";
@@ -32,7 +31,7 @@ import { useAppForm } from "../form/form";
 
 const createTeamSchema = z.object({
 	name: z.string().min(3, "Team name must be at least 3 characters long"),
-	description: z.string().optional(),
+	description: z.string(),
 	visibility: z.enum(["public", "private"]),
 	settings: z.object({
 		allowInvites: z.boolean(),
@@ -58,21 +57,7 @@ export function TeamManagement({ userId }: { userId: Id<"users"> }) {
 			},
 		},
 		validators: {
-			onBlur: ({ value }) => {
-				try {
-					createTeamSchema.parse(value);
-					return {};
-				} catch (error) {
-					if (error instanceof z.ZodError) {
-						return {
-							fields: Object.fromEntries(
-								error.errors.map((err) => [err.path.join("."), err.message]),
-							),
-						};
-					}
-					return {};
-				}
-			},
+			onBlur: createTeamSchema,
 		},
 		onSubmit: async ({ value }) => {
 			console.log(value);
@@ -140,17 +125,17 @@ export function TeamManagement({ userId }: { userId: Id<"users"> }) {
 				</CardContent>
 				<CardFooter>
 					<Dialog open={isCreateTeamOpen} onOpenChange={setIsCreateTeamOpen}>
-						<form
-							onSubmit={(e) => {
-								e.preventDefault();
-								e.stopPropagation();
-								form.handleSubmit();
-							}}
-						>
-							<DialogTrigger asChild>
-								<Button>Create New Team</Button>
-							</DialogTrigger>
-							<DialogContent className="sm:max-w-[425px]">
+						<DialogTrigger asChild>
+							<Button>Create New Team</Button>
+						</DialogTrigger>
+						<DialogContent className="sm:max-w-[425px]">
+							<form
+								onSubmit={(e) => {
+									e.preventDefault();
+									e.stopPropagation();
+									form.handleSubmit();
+								}}
+							>
 								<DialogHeader>
 									<DialogTitle>Create New Team</DialogTitle>
 									<DialogDescription>
@@ -312,8 +297,8 @@ export function TeamManagement({ userId }: { userId: Id<"users"> }) {
 										<form.SubscribeButton label="Create Team" />
 									</form.AppForm>
 								</DialogFooter>
-							</DialogContent>
-						</form>
+							</form>
+						</DialogContent>
 					</Dialog>
 				</CardFooter>
 			</Card>

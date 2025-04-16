@@ -20,12 +20,12 @@ import { Route as DemoTableImport } from './routes/demo.table'
 import { Route as DemoStoreImport } from './routes/demo.store'
 import { Route as DemoConvexImport } from './routes/demo.convex'
 import { Route as DemoClerkImport } from './routes/demo.clerk'
-import { Route as AuthedTeamsImport } from './routes/_authed/teams'
 import { Route as AuthedTasksImport } from './routes/_authed/tasks'
 import { Route as AuthedProfileImport } from './routes/_authed/profile'
 import { Route as AuthedDashboardImport } from './routes/_authed/dashboard'
 import { Route as AuthedBoardsImport } from './routes/_authed/boards'
 import { Route as ExampleGuitarsIndexImport } from './routes/example.guitars/index'
+import { Route as AuthedTeamsIndexImport } from './routes/_authed/teams.index'
 import { Route as ExampleGuitarsGuitarIdImport } from './routes/example.guitars/$guitarId'
 import { Route as DemoStartServerFuncsImport } from './routes/demo.start.server-funcs'
 import { Route as DemoStartApiRequestImport } from './routes/demo.start.api-request'
@@ -90,12 +90,6 @@ const DemoClerkRoute = DemoClerkImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const AuthedTeamsRoute = AuthedTeamsImport.update({
-  id: '/teams',
-  path: '/teams',
-  getParentRoute: () => AuthedRoute,
-} as any)
-
 const AuthedTasksRoute = AuthedTasksImport.update({
   id: '/tasks',
   path: '/tasks',
@@ -124,6 +118,12 @@ const ExampleGuitarsIndexRoute = ExampleGuitarsIndexImport.update({
   id: '/example/guitars/',
   path: '/example/guitars/',
   getParentRoute: () => rootRoute,
+} as any)
+
+const AuthedTeamsIndexRoute = AuthedTeamsIndexImport.update({
+  id: '/teams/',
+  path: '/teams/',
+  getParentRoute: () => AuthedRoute,
 } as any)
 
 const ExampleGuitarsGuitarIdRoute = ExampleGuitarsGuitarIdImport.update({
@@ -163,9 +163,9 @@ const DemoFormAddressRoute = DemoFormAddressImport.update({
 } as any)
 
 const AuthedTeamsTeamIdRoute = AuthedTeamsTeamIdImport.update({
-  id: '/$teamId',
-  path: '/$teamId',
-  getParentRoute: () => AuthedTeamsRoute,
+  id: '/teams/$teamId',
+  path: '/teams/$teamId',
+  getParentRoute: () => AuthedRoute,
 } as any)
 
 const AuthedBoardsBoardIdRoute = AuthedBoardsBoardIdImport.update({
@@ -218,13 +218,6 @@ declare module '@tanstack/react-router' {
       path: '/tasks'
       fullPath: '/tasks'
       preLoaderRoute: typeof AuthedTasksImport
-      parentRoute: typeof AuthedImport
-    }
-    '/_authed/teams': {
-      id: '/_authed/teams'
-      path: '/teams'
-      fullPath: '/teams'
-      preLoaderRoute: typeof AuthedTeamsImport
       parentRoute: typeof AuthedImport
     }
     '/demo/clerk': {
@@ -285,10 +278,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authed/teams/$teamId': {
       id: '/_authed/teams/$teamId'
-      path: '/$teamId'
+      path: '/teams/$teamId'
       fullPath: '/teams/$teamId'
       preLoaderRoute: typeof AuthedTeamsTeamIdImport
-      parentRoute: typeof AuthedTeamsImport
+      parentRoute: typeof AuthedImport
     }
     '/demo/form/address': {
       id: '/demo/form/address'
@@ -332,6 +325,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExampleGuitarsGuitarIdImport
       parentRoute: typeof rootRoute
     }
+    '/_authed/teams/': {
+      id: '/_authed/teams/'
+      path: '/teams'
+      fullPath: '/teams'
+      preLoaderRoute: typeof AuthedTeamsIndexImport
+      parentRoute: typeof AuthedImport
+    }
     '/example/guitars/': {
       id: '/example/guitars/'
       path: '/example/guitars'
@@ -356,24 +356,13 @@ const AuthedBoardsRouteWithChildren = AuthedBoardsRoute._addFileChildren(
   AuthedBoardsRouteChildren,
 )
 
-interface AuthedTeamsRouteChildren {
-  AuthedTeamsTeamIdRoute: typeof AuthedTeamsTeamIdRoute
-}
-
-const AuthedTeamsRouteChildren: AuthedTeamsRouteChildren = {
-  AuthedTeamsTeamIdRoute: AuthedTeamsTeamIdRoute,
-}
-
-const AuthedTeamsRouteWithChildren = AuthedTeamsRoute._addFileChildren(
-  AuthedTeamsRouteChildren,
-)
-
 interface AuthedRouteChildren {
   AuthedBoardsRoute: typeof AuthedBoardsRouteWithChildren
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedProfileRoute: typeof AuthedProfileRoute
   AuthedTasksRoute: typeof AuthedTasksRoute
-  AuthedTeamsRoute: typeof AuthedTeamsRouteWithChildren
+  AuthedTeamsTeamIdRoute: typeof AuthedTeamsTeamIdRoute
+  AuthedTeamsIndexRoute: typeof AuthedTeamsIndexRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
@@ -381,7 +370,8 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedProfileRoute: AuthedProfileRoute,
   AuthedTasksRoute: AuthedTasksRoute,
-  AuthedTeamsRoute: AuthedTeamsRouteWithChildren,
+  AuthedTeamsTeamIdRoute: AuthedTeamsTeamIdRoute,
+  AuthedTeamsIndexRoute: AuthedTeamsIndexRoute,
 }
 
 const AuthedRouteWithChildren =
@@ -394,7 +384,6 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthedDashboardRoute
   '/profile': typeof AuthedProfileRoute
   '/tasks': typeof AuthedTasksRoute
-  '/teams': typeof AuthedTeamsRouteWithChildren
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
   '/demo/store': typeof DemoStoreRoute
@@ -410,6 +399,7 @@ export interface FileRoutesByFullPath {
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
   '/example/guitars/$guitarId': typeof ExampleGuitarsGuitarIdRoute
+  '/teams': typeof AuthedTeamsIndexRoute
   '/example/guitars': typeof ExampleGuitarsIndexRoute
 }
 
@@ -420,7 +410,6 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthedDashboardRoute
   '/profile': typeof AuthedProfileRoute
   '/tasks': typeof AuthedTasksRoute
-  '/teams': typeof AuthedTeamsRouteWithChildren
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
   '/demo/store': typeof DemoStoreRoute
@@ -436,6 +425,7 @@ export interface FileRoutesByTo {
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
   '/example/guitars/$guitarId': typeof ExampleGuitarsGuitarIdRoute
+  '/teams': typeof AuthedTeamsIndexRoute
   '/example/guitars': typeof ExampleGuitarsIndexRoute
 }
 
@@ -447,7 +437,6 @@ export interface FileRoutesById {
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/profile': typeof AuthedProfileRoute
   '/_authed/tasks': typeof AuthedTasksRoute
-  '/_authed/teams': typeof AuthedTeamsRouteWithChildren
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
   '/demo/store': typeof DemoStoreRoute
@@ -463,6 +452,7 @@ export interface FileRoutesById {
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
   '/example/guitars/$guitarId': typeof ExampleGuitarsGuitarIdRoute
+  '/_authed/teams/': typeof AuthedTeamsIndexRoute
   '/example/guitars/': typeof ExampleGuitarsIndexRoute
 }
 
@@ -475,7 +465,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/tasks'
-    | '/teams'
     | '/demo/clerk'
     | '/demo/convex'
     | '/demo/store'
@@ -491,6 +480,7 @@ export interface FileRouteTypes {
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
     | '/example/guitars/$guitarId'
+    | '/teams'
     | '/example/guitars'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -500,7 +490,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/tasks'
-    | '/teams'
     | '/demo/clerk'
     | '/demo/convex'
     | '/demo/store'
@@ -516,6 +505,7 @@ export interface FileRouteTypes {
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
     | '/example/guitars/$guitarId'
+    | '/teams'
     | '/example/guitars'
   id:
     | '__root__'
@@ -525,7 +515,6 @@ export interface FileRouteTypes {
     | '/_authed/dashboard'
     | '/_authed/profile'
     | '/_authed/tasks'
-    | '/_authed/teams'
     | '/demo/clerk'
     | '/demo/convex'
     | '/demo/store'
@@ -541,6 +530,7 @@ export interface FileRouteTypes {
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
     | '/example/guitars/$guitarId'
+    | '/_authed/teams/'
     | '/example/guitars/'
   fileRoutesById: FileRoutesById
 }
@@ -621,7 +611,8 @@ export const routeTree = rootRoute
         "/_authed/dashboard",
         "/_authed/profile",
         "/_authed/tasks",
-        "/_authed/teams"
+        "/_authed/teams/$teamId",
+        "/_authed/teams/"
       ]
     },
     "/_authed/boards": {
@@ -642,13 +633,6 @@ export const routeTree = rootRoute
     "/_authed/tasks": {
       "filePath": "_authed/tasks.tsx",
       "parent": "/_authed"
-    },
-    "/_authed/teams": {
-      "filePath": "_authed/teams.tsx",
-      "parent": "/_authed",
-      "children": [
-        "/_authed/teams/$teamId"
-      ]
     },
     "/demo/clerk": {
       "filePath": "demo.clerk.tsx"
@@ -677,7 +661,7 @@ export const routeTree = rootRoute
     },
     "/_authed/teams/$teamId": {
       "filePath": "_authed/teams.$teamId.tsx",
-      "parent": "/_authed/teams"
+      "parent": "/_authed"
     },
     "/demo/form/address": {
       "filePath": "demo.form.address.tsx"
@@ -696,6 +680,10 @@ export const routeTree = rootRoute
     },
     "/example/guitars/$guitarId": {
       "filePath": "example.guitars/$guitarId.tsx"
+    },
+    "/_authed/teams/": {
+      "filePath": "_authed/teams.index.tsx",
+      "parent": "/_authed"
     },
     "/example/guitars/": {
       "filePath": "example.guitars/index.tsx"
