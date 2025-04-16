@@ -83,6 +83,10 @@ const data = {
 					url: "/boards",
 				},
 				{
+					title: "Documents",
+					url: "/documents",
+				},
+				{
 					title: "Quantum",
 					url: "#",
 				},
@@ -190,6 +194,10 @@ const navigationGroups = {
 					{
 						to: "/boards",
 						label: "Boards",
+					},
+					{
+						to: "/documents",
+						label: "Documents",
 					},
 				]),
 			},

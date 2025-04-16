@@ -22,6 +22,7 @@ import { Route as DemoConvexImport } from './routes/demo.convex'
 import { Route as DemoClerkImport } from './routes/demo.clerk'
 import { Route as AuthedTasksImport } from './routes/_authed/tasks'
 import { Route as AuthedProfileImport } from './routes/_authed/profile'
+import { Route as AuthedDocumentsImport } from './routes/_authed/documents'
 import { Route as AuthedDashboardImport } from './routes/_authed/dashboard'
 import { Route as AuthedBoardsImport } from './routes/_authed/boards'
 import { Route as ExampleGuitarsIndexImport } from './routes/example.guitars/index'
@@ -99,6 +100,12 @@ const AuthedTasksRoute = AuthedTasksImport.update({
 const AuthedProfileRoute = AuthedProfileImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AuthedRoute,
+} as any)
+
+const AuthedDocumentsRoute = AuthedDocumentsImport.update({
+  id: '/documents',
+  path: '/documents',
   getParentRoute: () => AuthedRoute,
 } as any)
 
@@ -204,6 +211,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthedDashboardImport
+      parentRoute: typeof AuthedImport
+    }
+    '/_authed/documents': {
+      id: '/_authed/documents'
+      path: '/documents'
+      fullPath: '/documents'
+      preLoaderRoute: typeof AuthedDocumentsImport
       parentRoute: typeof AuthedImport
     }
     '/_authed/profile': {
@@ -359,6 +373,7 @@ const AuthedBoardsRouteWithChildren = AuthedBoardsRoute._addFileChildren(
 interface AuthedRouteChildren {
   AuthedBoardsRoute: typeof AuthedBoardsRouteWithChildren
   AuthedDashboardRoute: typeof AuthedDashboardRoute
+  AuthedDocumentsRoute: typeof AuthedDocumentsRoute
   AuthedProfileRoute: typeof AuthedProfileRoute
   AuthedTasksRoute: typeof AuthedTasksRoute
   AuthedTeamsTeamIdRoute: typeof AuthedTeamsTeamIdRoute
@@ -368,6 +383,7 @@ interface AuthedRouteChildren {
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedBoardsRoute: AuthedBoardsRouteWithChildren,
   AuthedDashboardRoute: AuthedDashboardRoute,
+  AuthedDocumentsRoute: AuthedDocumentsRoute,
   AuthedProfileRoute: AuthedProfileRoute,
   AuthedTasksRoute: AuthedTasksRoute,
   AuthedTeamsTeamIdRoute: AuthedTeamsTeamIdRoute,
@@ -382,6 +398,7 @@ export interface FileRoutesByFullPath {
   '': typeof AuthedRouteWithChildren
   '/boards': typeof AuthedBoardsRouteWithChildren
   '/dashboard': typeof AuthedDashboardRoute
+  '/documents': typeof AuthedDocumentsRoute
   '/profile': typeof AuthedProfileRoute
   '/tasks': typeof AuthedTasksRoute
   '/demo/clerk': typeof DemoClerkRoute
@@ -408,6 +425,7 @@ export interface FileRoutesByTo {
   '': typeof AuthedRouteWithChildren
   '/boards': typeof AuthedBoardsRouteWithChildren
   '/dashboard': typeof AuthedDashboardRoute
+  '/documents': typeof AuthedDocumentsRoute
   '/profile': typeof AuthedProfileRoute
   '/tasks': typeof AuthedTasksRoute
   '/demo/clerk': typeof DemoClerkRoute
@@ -435,6 +453,7 @@ export interface FileRoutesById {
   '/_authed': typeof AuthedRouteWithChildren
   '/_authed/boards': typeof AuthedBoardsRouteWithChildren
   '/_authed/dashboard': typeof AuthedDashboardRoute
+  '/_authed/documents': typeof AuthedDocumentsRoute
   '/_authed/profile': typeof AuthedProfileRoute
   '/_authed/tasks': typeof AuthedTasksRoute
   '/demo/clerk': typeof DemoClerkRoute
@@ -463,6 +482,7 @@ export interface FileRouteTypes {
     | ''
     | '/boards'
     | '/dashboard'
+    | '/documents'
     | '/profile'
     | '/tasks'
     | '/demo/clerk'
@@ -488,6 +508,7 @@ export interface FileRouteTypes {
     | ''
     | '/boards'
     | '/dashboard'
+    | '/documents'
     | '/profile'
     | '/tasks'
     | '/demo/clerk'
@@ -513,6 +534,7 @@ export interface FileRouteTypes {
     | '/_authed'
     | '/_authed/boards'
     | '/_authed/dashboard'
+    | '/_authed/documents'
     | '/_authed/profile'
     | '/_authed/tasks'
     | '/demo/clerk'
@@ -609,6 +631,7 @@ export const routeTree = rootRoute
       "children": [
         "/_authed/boards",
         "/_authed/dashboard",
+        "/_authed/documents",
         "/_authed/profile",
         "/_authed/tasks",
         "/_authed/teams/$teamId",
@@ -624,6 +647,10 @@ export const routeTree = rootRoute
     },
     "/_authed/dashboard": {
       "filePath": "_authed/dashboard.tsx",
+      "parent": "/_authed"
+    },
+    "/_authed/documents": {
+      "filePath": "_authed/documents.tsx",
       "parent": "/_authed"
     },
     "/_authed/profile": {
