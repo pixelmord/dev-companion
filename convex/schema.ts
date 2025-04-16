@@ -1,4 +1,5 @@
-import { defineSchema } from "convex/server";
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
 import { boardTables } from "./board";
 import { teamsTables } from "./teams";
 import { usersTables } from "./users";
@@ -8,6 +9,7 @@ import { activityTables } from "./activities";
 import { designDocsTables } from "./designdocs";
 import { tasksTables } from "./tasks";
 import { projectTables } from "./products";
+import { documentsTables } from "./documents";
 
 const schema = defineSchema({
 	// User and team management
@@ -20,6 +22,9 @@ const schema = defineSchema({
 	...tasksTables,
 	...projectTables,
 	...boardTables,
+	// Document tables
+	...documentsTables,
+
 });
 
 export default schema;

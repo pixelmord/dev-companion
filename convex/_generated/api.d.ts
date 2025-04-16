@@ -17,6 +17,7 @@ import type * as activities from "../activities.js";
 import type * as board from "../board.js";
 import type * as crons from "../crons.js";
 import type * as designdocs from "../designdocs.js";
+import type * as documents from "../documents.js";
 import type * as files from "../files.js";
 import type * as model_activities from "../model/activities.js";
 import type * as model_projects from "../model/projects.js";
@@ -44,6 +45,7 @@ declare const fullApi: ApiFromModules<{
   board: typeof board;
   crons: typeof crons;
   designdocs: typeof designdocs;
+  documents: typeof documents;
   files: typeof files;
   "model/activities": typeof model_activities;
   "model/projects": typeof model_projects;

@@ -2,6 +2,7 @@ import { defineTable } from "convex/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import * as TeamModel from "./model/teams";
+import type { Doc, Id } from "./_generated/dataModel";
 
 export const teamsTables = {
 	teams: defineTable({
@@ -104,22 +105,24 @@ export const updateTeamSchema = v.object({
 // Query to get all teams a user is a member of
 export const getUserTeams = query({
 	args: { userId: v.id("users") },
-	returns: v.array(v.object({
-		_id: v.id("teams"),
-		_creationTime: v.number(),
-		name: v.string(),
-		description: v.optional(v.string()),
-		visibility: v.union(v.literal("public"), v.literal("private")),
-		ownerId: v.id("users"),
-		settings: v.object({
-			allowInvites: v.boolean(),
-			defaultRole: v.union(v.literal("admin"), v.literal("member")),
-			notificationsEnabled: v.boolean(),
-		}),
-		createdBy: v.id("users"),
-		createdAt: v.number(),
-		updatedAt: v.number(),
-	})),
+	returns: v.array(
+		v.object({
+			_id: v.id("teams"),
+			_creationTime: v.number(),
+			name: v.string(),
+			description: v.optional(v.string()),
+			ownerId: v.id("users"),
+			visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
+			settings: v.optional(v.object({
+				allowInvites: v.boolean(),
+				defaultRole: v.union(v.literal("admin"), v.literal("member")),
+				notificationsEnabled: v.boolean(),
+			})),
+			createdBy: v.optional(v.id("users")),
+			createdAt: v.optional(v.number()),
+			updatedAt: v.optional(v.number()),
+		})
+	),
 	handler: async (ctx, args) => {
 		return await TeamModel.getTeamsByMember(ctx, args.userId);
 	},
@@ -134,16 +137,15 @@ export const getTeam = query({
 			_creationTime: v.number(),
 			name: v.string(),
 			description: v.optional(v.string()),
-			visibility: v.union(v.literal("public"), v.literal("private")),
 			ownerId: v.id("users"),
-			settings: v.object({
+			visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
+			settings: v.optional(v.object({
 				allowInvites: v.boolean(),
 				defaultRole: v.union(v.literal("admin"), v.literal("member")),
 				notificationsEnabled: v.boolean(),
-			}),
-			createdBy: v.id("users"),
-			createdAt: v.number(),
-			updatedAt: v.number(),
+			})),
+			createdBy: v.optional(v.id("users")),
+			updatedAt: v.optional(v.number()),
 		}),
 		v.null()
 	),
@@ -337,15 +339,15 @@ export const acceptInvite = mutation({
 		_creationTime: v.number(),
 		name: v.string(),
 		description: v.optional(v.string()),
-		visibility: v.union(v.literal("public"), v.literal("private")),
 		ownerId: v.id("users"),
-		settings: v.object({
+		visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
+		settings: v.optional(v.object({
 			allowInvites: v.boolean(),
 			defaultRole: v.union(v.literal("admin"), v.literal("member")),
 			notificationsEnabled: v.boolean(),
-		}),
-		createdBy: v.id("users"),
-		updatedAt: v.number(),
+		})),
+		createdBy: v.optional(v.id("users")),
+		updatedAt: v.optional(v.number()),
 	}),
 	handler: async (ctx, { token }) => {
 		const identity = await ctx.auth.getUserIdentity();
@@ -420,8 +422,8 @@ export const getTeamMembers = query({
 					userId: user._id,
 					name: user.name,
 					email: user.email,
-					avatarUrl: user.avatarUrl,
-					role: membership.role,
+					avatarUrl: undefined,
+					role: membership.role as "owner" | "admin" | "member",
 				};
 			})
 		);

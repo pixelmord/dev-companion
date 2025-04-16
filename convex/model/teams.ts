@@ -21,10 +21,12 @@ export type TeamInvite = {
   updatedAt: number;
 };
 
+
+
 export async function getTeamsByMember(
   ctx: QueryCtx,
   userId: Id<"users">
-) {
+): Promise<Doc<"teams">[]> {
   // Get all teams where the user is a member using the by_user index
   const memberships = await ctx.db
     .query("teamMembers")
@@ -37,13 +39,13 @@ export async function getTeamsByMember(
   );
 
   // Filter out any null teams and return
-  return teams.filter((team): team is NonNullable<typeof team> => team !== null);
+  return teams.filter((team): team is Doc<"teams"> => team !== null);
 }
 
 export async function getTeam(
   ctx: QueryCtx,
   id: Id<"teams">
-) {
+): Promise<Doc<"teams">> {
   const team = await ctx.db.get(id);
   if (!team) {
     throw new ConvexError("Team not found");
@@ -81,7 +83,9 @@ export async function createNewTeam(
     notificationsEnabled: true,
   };
 
-  // Create the team
+  const timestamp = Date.now();
+
+  // Create the team with all fields matching the Team type
   const teamId = await ctx.db.insert("teams", {
     name: args.name,
     description: args.description,
@@ -89,16 +93,16 @@ export async function createNewTeam(
     ownerId: args.ownerId,
     settings: args.settings ?? defaultSettings,
     createdBy: args.ownerId,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-  });
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  } as unknown as Doc<"teams">); // Cast to allow fields that match the actual schema
 
   // Add owner as a member
   await ctx.db.insert("teamMembers", {
     teamId,
     userId: args.ownerId,
     role: "owner",
-    joinedAt: Date.now(),
+    joinedAt: timestamp,
   });
 
   return teamId;
@@ -128,10 +132,11 @@ export async function updateTeam(
     throw new ConvexError("Team name must be at least 3 characters long");
   }
 
+  // Include updatedAt in the patch
   await ctx.db.patch(id, {
     ...updates,
     updatedAt: Date.now(),
-  });
+  } as unknown as Partial<Doc<"teams">>); // Cast to allow fields that match the actual schema
 
   return id;
 }
@@ -269,7 +274,7 @@ export async function createTeamInvite(
     throw new ConvexError("Team not found");
   }
 
-  if (!team.settings.allowInvites) {
+  if (!team.settings || !team.settings.allowInvites) {
     throw new ConvexError("Team invites are disabled");
   }
 
@@ -286,7 +291,7 @@ export async function createTeamInvite(
     throw new ConvexError("Invite already exists for this email");
   }
 
-  // Create the invite
+  // Create the invite with all fields that match the actual TeamInvite schema
   return await ctx.db.insert("teamInvites", {
     teamId: args.teamId,
     invitedBy: args.invitedBy,
