@@ -6,7 +6,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 
 // Helper function to get the current user or throw if not authenticated
 async function getUserOrThrow(ctx: {
-  auth: { getUserIdentity: () => Promise<{ tokenIdentifier: string } | null> };
+  auth: { getUserIdentity: () => Promise<{ tokenIdentifier: string, subject: string } | null> };
   db: any;
 }) {
   const identity = await ctx.auth.getUserIdentity();
@@ -16,8 +16,8 @@ async function getUserOrThrow(ctx: {
 
   const user = await ctx.db
     .query("users")
-    .withIndex("by_clerk_id", (q: any) => q.eq("clerkId", identity.tokenIdentifier))
-    .first();
+    .withIndex("by_clerk_id", (q: any) => q.eq("clerkId", identity.subject))
+    .unique();
 
   if (!user) {
     throw new Error("User not found");
