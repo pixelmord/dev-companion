@@ -1,7 +1,10 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import * as UserModel from "./model/users";
+
+import {zid } from "convex-helpers/server/zod";
+import { zodMutation, zodQuery } from "./schema";
+import { z } from "zod";
 
 export const usersTables = {
   users: defineTable({
@@ -18,6 +21,13 @@ export const usersTables = {
       v.literal("user"),
       v.literal("guest")
     ),
+    connections: v.array(v.id("users")),
+    // Social media links
+    // format array of objects that have a type and url
+    social: v.optional(v.array(v.object({
+      type: v.union(v.literal("github"), v.literal("bluesky"), v.literal("website")),
+      url: v.string(),
+    }))),
 
     // Preferences
     preferences: v.optional(v.object({
@@ -37,27 +47,11 @@ export const usersTables = {
 
 const userValidator = usersTables.users.validator;
 
-// Validator for updating user profile
-export const updateUserProfileSchema = v.object({
-  id: v.id("users"),
-  name: v.optional(v.string()),
-  bio: v.optional(v.string()),
-  role: v.optional(v.union(
-    v.literal("admin"),
-    v.literal("user"),
-    v.literal("guest")
-  )),
-  avatarUrl: v.optional(v.string()),
-  preferences: v.optional(v.object({
-    theme: v.union(v.literal("light"), v.literal("dark"), v.literal("system")),
-    notifications: v.boolean(),
-    emailDigest: v.boolean(),
-  })),
-});
+
 
 // Query to get a user's profile by Clerk ID
-export const getProfile = query({
-  args: { clerkId: v.string() },
+export const getProfile = zodQuery({
+  args: { clerkId: z.string() },
   handler: async (ctx, args) => {
     const user = await ctx.db
       .query("users")
@@ -68,15 +62,25 @@ export const getProfile = query({
   },
 });
 
+export const createUserProfileSchema = z.object({
+  clerkId: z.string(),
+	name: z.string().min(1, "Full name is required"),
+	email: z.string().email("Invalid email address"),
+	bio: z.string().optional(),
+	avatarUrl: z.string().optional(),
+  role: z.enum(["admin", "user", "guest"]),
+  connections: z.array(zid("users")),
+	preferences: z.object({
+		theme: z.enum(["light", "dark", "system"]),
+		notifications: z.boolean(),
+		emailDigest: z.boolean(),
+	}),
+});
+
+
 // Mutation to create a new user profile
-export const createProfile = mutation({
-  args: {
-    clerkId: v.string(),
-    name: v.string(),
-    email: v.string(),
-    bio: v.optional(v.string()),
-    avatarUrl: v.optional(v.string()),
-  },
+export const createProfile = zodMutation({
+  args: createUserProfileSchema,
   handler: async (ctx, args) => {
     // Check if profile already exists
     const existingUser = await ctx.db
@@ -90,17 +94,7 @@ export const createProfile = mutation({
 
     // Create new profile
     const userId = await ctx.db.insert("users", {
-      clerkId: args.clerkId,
-      name: args.name,
-      email: args.email,
-      bio: args.bio,
-      avatarUrl: args.avatarUrl,
-      role: "user",
-      preferences: {
-        theme: "system",
-        notifications: true,
-        emailDigest: true,
-      },
+      ...args,
       lastActive: Date.now(),
       updatedAt: Date.now(),
     });
@@ -109,20 +103,25 @@ export const createProfile = mutation({
   },
 });
 
+// Validator for updating user profile
+export const updateUserProfileSchema = z.object({
+  id: zid("users"),
+  name: z.string().optional(),
+  email: z.string().email().optional(),
+  bio: z.string().optional(),
+  avatarUrl: z.string().optional(),
+  connections: z.array(zid("users")).optional(),
+  role: z.enum(["admin", "user", "guest"]).optional(),
+  preferences: z.object({
+    theme: z.enum(["light", "dark", "system"]),
+    notifications: z.boolean(),
+    emailDigest: z.boolean(),
+  }).optional(),
+});
+
 // Mutation to update a user's profile
-export const updateProfile = mutation({
-  args: {
-    id: v.id("users"),
-    name: v.string(),
-    email: v.string(),
-    bio: v.optional(v.string()),
-    avatarUrl: v.optional(v.string()),
-    preferences: v.optional(v.object({
-      theme: v.union(v.literal("light"), v.literal("dark"), v.literal("system")),
-      notifications: v.boolean(),
-      emailDigest: v.boolean(),
-    })),
-  },
+export const updateProfile = zodMutation({
+  args: updateUserProfileSchema,
   handler: async (ctx, args) => {
     const { id, ...updates } = args;
 
@@ -135,6 +134,7 @@ export const updateProfile = mutation({
     // Update profile
     await ctx.db.patch(id, {
       ...updates,
+      lastActive: Date.now(),
       updatedAt: Date.now(),
     });
 
@@ -147,7 +147,10 @@ export const getUserByClerkId = query({
   args: { clerkId: v.string() },
   returns: v.union(userValidator, v.null()),
   handler: async (ctx, args) => {
-    return await UserModel.getUserByClerkId(ctx, args.clerkId);
+    return await ctx.db
+    .query("users")
+    .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+    .unique();
   },
 });
 
@@ -156,33 +159,25 @@ export const getUser = query({
   args: { id: v.id("users") },
   returns: v.union(userValidator, v.null()),
   handler: async (ctx, args) => {
-    return await UserModel.getUser(ctx, args.id);
+    return await ctx.db.get(args.id);
   },
 });
 
-// Mutation to create a new user
-export const createUser = mutation({
-  args: {
-    clerkId: v.string(),
-    email: v.string(),
-    name: v.string(),
-    role: v.union(
-      v.literal("admin"),
-      v.literal("user"),
-      v.literal("guest")
-    ),
-  },
-  returns: v.id("users"),
-  handler: async (ctx, args) => {
-    return await UserModel.createNewUser(ctx, args);
-  },
-});
+
 
 // Mutation to update user's last active timestamp
 export const updateUserLastActive = mutation({
   args: { id: v.id("users") },
   returns: v.id("users"),
   handler: async (ctx, args) => {
-    return await UserModel.updateLastActive(ctx, args.id);
+    const user = await ctx.db.get(args.id);
+  if (!user) throw new Error("User not found");
+
+    await ctx.db.patch(args.id, {
+      lastActive: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    return args.id;
   },
 });

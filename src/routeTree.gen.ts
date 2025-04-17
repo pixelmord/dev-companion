@@ -22,11 +22,13 @@ import { Route as DemoConvexImport } from './routes/demo.convex'
 import { Route as DemoClerkImport } from './routes/demo.clerk'
 import { Route as AuthedTasksImport } from './routes/_authed/tasks'
 import { Route as AuthedProfileImport } from './routes/_authed/profile'
+import { Route as AuthedMicroblogImport } from './routes/_authed/microblog'
 import { Route as AuthedDocumentsImport } from './routes/_authed/documents'
 import { Route as AuthedDashboardImport } from './routes/_authed/dashboard'
 import { Route as AuthedBoardsImport } from './routes/_authed/boards'
 import { Route as ExampleGuitarsIndexImport } from './routes/example.guitars/index'
 import { Route as AuthedTeamsIndexImport } from './routes/_authed/teams.index'
+import { Route as AuthedResourcesIndexImport } from './routes/_authed/resources.index'
 import { Route as ExampleGuitarsGuitarIdImport } from './routes/example.guitars/$guitarId'
 import { Route as DemoStartServerFuncsImport } from './routes/demo.start.server-funcs'
 import { Route as DemoStartApiRequestImport } from './routes/demo.start.api-request'
@@ -34,6 +36,7 @@ import { Route as DemoSentryTestingImport } from './routes/demo.sentry.testing'
 import { Route as DemoFormSimpleImport } from './routes/demo.form.simple'
 import { Route as DemoFormAddressImport } from './routes/demo.form.address'
 import { Route as AuthedTeamsTeamIdImport } from './routes/_authed/teams.$teamId'
+import { Route as AuthedResourcesResourceIdImport } from './routes/_authed/resources.$resourceId'
 import { Route as AuthedBoardsBoardIdImport } from './routes/_authed/boards.$boardId'
 
 // Create/Update Routes
@@ -103,6 +106,12 @@ const AuthedProfileRoute = AuthedProfileImport.update({
   getParentRoute: () => AuthedRoute,
 } as any)
 
+const AuthedMicroblogRoute = AuthedMicroblogImport.update({
+  id: '/microblog',
+  path: '/microblog',
+  getParentRoute: () => AuthedRoute,
+} as any)
+
 const AuthedDocumentsRoute = AuthedDocumentsImport.update({
   id: '/documents',
   path: '/documents',
@@ -130,6 +139,12 @@ const ExampleGuitarsIndexRoute = ExampleGuitarsIndexImport.update({
 const AuthedTeamsIndexRoute = AuthedTeamsIndexImport.update({
   id: '/teams/',
   path: '/teams/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+
+const AuthedResourcesIndexRoute = AuthedResourcesIndexImport.update({
+  id: '/resources/',
+  path: '/resources/',
   getParentRoute: () => AuthedRoute,
 } as any)
 
@@ -172,6 +187,12 @@ const DemoFormAddressRoute = DemoFormAddressImport.update({
 const AuthedTeamsTeamIdRoute = AuthedTeamsTeamIdImport.update({
   id: '/teams/$teamId',
   path: '/teams/$teamId',
+  getParentRoute: () => AuthedRoute,
+} as any)
+
+const AuthedResourcesResourceIdRoute = AuthedResourcesResourceIdImport.update({
+  id: '/resources/$resourceId',
+  path: '/resources/$resourceId',
   getParentRoute: () => AuthedRoute,
 } as any)
 
@@ -218,6 +239,13 @@ declare module '@tanstack/react-router' {
       path: '/documents'
       fullPath: '/documents'
       preLoaderRoute: typeof AuthedDocumentsImport
+      parentRoute: typeof AuthedImport
+    }
+    '/_authed/microblog': {
+      id: '/_authed/microblog'
+      path: '/microblog'
+      fullPath: '/microblog'
+      preLoaderRoute: typeof AuthedMicroblogImport
       parentRoute: typeof AuthedImport
     }
     '/_authed/profile': {
@@ -290,6 +318,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedBoardsBoardIdImport
       parentRoute: typeof AuthedBoardsImport
     }
+    '/_authed/resources/$resourceId': {
+      id: '/_authed/resources/$resourceId'
+      path: '/resources/$resourceId'
+      fullPath: '/resources/$resourceId'
+      preLoaderRoute: typeof AuthedResourcesResourceIdImport
+      parentRoute: typeof AuthedImport
+    }
     '/_authed/teams/$teamId': {
       id: '/_authed/teams/$teamId'
       path: '/teams/$teamId'
@@ -339,6 +374,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExampleGuitarsGuitarIdImport
       parentRoute: typeof rootRoute
     }
+    '/_authed/resources/': {
+      id: '/_authed/resources/'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof AuthedResourcesIndexImport
+      parentRoute: typeof AuthedImport
+    }
     '/_authed/teams/': {
       id: '/_authed/teams/'
       path: '/teams'
@@ -374,9 +416,12 @@ interface AuthedRouteChildren {
   AuthedBoardsRoute: typeof AuthedBoardsRouteWithChildren
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedDocumentsRoute: typeof AuthedDocumentsRoute
+  AuthedMicroblogRoute: typeof AuthedMicroblogRoute
   AuthedProfileRoute: typeof AuthedProfileRoute
   AuthedTasksRoute: typeof AuthedTasksRoute
+  AuthedResourcesResourceIdRoute: typeof AuthedResourcesResourceIdRoute
   AuthedTeamsTeamIdRoute: typeof AuthedTeamsTeamIdRoute
+  AuthedResourcesIndexRoute: typeof AuthedResourcesIndexRoute
   AuthedTeamsIndexRoute: typeof AuthedTeamsIndexRoute
 }
 
@@ -384,9 +429,12 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedBoardsRoute: AuthedBoardsRouteWithChildren,
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedDocumentsRoute: AuthedDocumentsRoute,
+  AuthedMicroblogRoute: AuthedMicroblogRoute,
   AuthedProfileRoute: AuthedProfileRoute,
   AuthedTasksRoute: AuthedTasksRoute,
+  AuthedResourcesResourceIdRoute: AuthedResourcesResourceIdRoute,
   AuthedTeamsTeamIdRoute: AuthedTeamsTeamIdRoute,
+  AuthedResourcesIndexRoute: AuthedResourcesIndexRoute,
   AuthedTeamsIndexRoute: AuthedTeamsIndexRoute,
 }
 
@@ -399,6 +447,7 @@ export interface FileRoutesByFullPath {
   '/boards': typeof AuthedBoardsRouteWithChildren
   '/dashboard': typeof AuthedDashboardRoute
   '/documents': typeof AuthedDocumentsRoute
+  '/microblog': typeof AuthedMicroblogRoute
   '/profile': typeof AuthedProfileRoute
   '/tasks': typeof AuthedTasksRoute
   '/demo/clerk': typeof DemoClerkRoute
@@ -409,6 +458,7 @@ export interface FileRoutesByFullPath {
   '/example/chat': typeof ExampleChatRoute
   '/sign-in/$': typeof SignInSplatRoute
   '/boards/$boardId': typeof AuthedBoardsBoardIdRoute
+  '/resources/$resourceId': typeof AuthedResourcesResourceIdRoute
   '/teams/$teamId': typeof AuthedTeamsTeamIdRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
@@ -416,6 +466,7 @@ export interface FileRoutesByFullPath {
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
   '/example/guitars/$guitarId': typeof ExampleGuitarsGuitarIdRoute
+  '/resources': typeof AuthedResourcesIndexRoute
   '/teams': typeof AuthedTeamsIndexRoute
   '/example/guitars': typeof ExampleGuitarsIndexRoute
 }
@@ -426,6 +477,7 @@ export interface FileRoutesByTo {
   '/boards': typeof AuthedBoardsRouteWithChildren
   '/dashboard': typeof AuthedDashboardRoute
   '/documents': typeof AuthedDocumentsRoute
+  '/microblog': typeof AuthedMicroblogRoute
   '/profile': typeof AuthedProfileRoute
   '/tasks': typeof AuthedTasksRoute
   '/demo/clerk': typeof DemoClerkRoute
@@ -436,6 +488,7 @@ export interface FileRoutesByTo {
   '/example/chat': typeof ExampleChatRoute
   '/sign-in/$': typeof SignInSplatRoute
   '/boards/$boardId': typeof AuthedBoardsBoardIdRoute
+  '/resources/$resourceId': typeof AuthedResourcesResourceIdRoute
   '/teams/$teamId': typeof AuthedTeamsTeamIdRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
@@ -443,6 +496,7 @@ export interface FileRoutesByTo {
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
   '/example/guitars/$guitarId': typeof ExampleGuitarsGuitarIdRoute
+  '/resources': typeof AuthedResourcesIndexRoute
   '/teams': typeof AuthedTeamsIndexRoute
   '/example/guitars': typeof ExampleGuitarsIndexRoute
 }
@@ -454,6 +508,7 @@ export interface FileRoutesById {
   '/_authed/boards': typeof AuthedBoardsRouteWithChildren
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/documents': typeof AuthedDocumentsRoute
+  '/_authed/microblog': typeof AuthedMicroblogRoute
   '/_authed/profile': typeof AuthedProfileRoute
   '/_authed/tasks': typeof AuthedTasksRoute
   '/demo/clerk': typeof DemoClerkRoute
@@ -464,6 +519,7 @@ export interface FileRoutesById {
   '/example/chat': typeof ExampleChatRoute
   '/sign-in/$': typeof SignInSplatRoute
   '/_authed/boards/$boardId': typeof AuthedBoardsBoardIdRoute
+  '/_authed/resources/$resourceId': typeof AuthedResourcesResourceIdRoute
   '/_authed/teams/$teamId': typeof AuthedTeamsTeamIdRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
@@ -471,6 +527,7 @@ export interface FileRoutesById {
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
   '/example/guitars/$guitarId': typeof ExampleGuitarsGuitarIdRoute
+  '/_authed/resources/': typeof AuthedResourcesIndexRoute
   '/_authed/teams/': typeof AuthedTeamsIndexRoute
   '/example/guitars/': typeof ExampleGuitarsIndexRoute
 }
@@ -483,6 +540,7 @@ export interface FileRouteTypes {
     | '/boards'
     | '/dashboard'
     | '/documents'
+    | '/microblog'
     | '/profile'
     | '/tasks'
     | '/demo/clerk'
@@ -493,6 +551,7 @@ export interface FileRouteTypes {
     | '/example/chat'
     | '/sign-in/$'
     | '/boards/$boardId'
+    | '/resources/$resourceId'
     | '/teams/$teamId'
     | '/demo/form/address'
     | '/demo/form/simple'
@@ -500,6 +559,7 @@ export interface FileRouteTypes {
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
     | '/example/guitars/$guitarId'
+    | '/resources'
     | '/teams'
     | '/example/guitars'
   fileRoutesByTo: FileRoutesByTo
@@ -509,6 +569,7 @@ export interface FileRouteTypes {
     | '/boards'
     | '/dashboard'
     | '/documents'
+    | '/microblog'
     | '/profile'
     | '/tasks'
     | '/demo/clerk'
@@ -519,6 +580,7 @@ export interface FileRouteTypes {
     | '/example/chat'
     | '/sign-in/$'
     | '/boards/$boardId'
+    | '/resources/$resourceId'
     | '/teams/$teamId'
     | '/demo/form/address'
     | '/demo/form/simple'
@@ -526,6 +588,7 @@ export interface FileRouteTypes {
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
     | '/example/guitars/$guitarId'
+    | '/resources'
     | '/teams'
     | '/example/guitars'
   id:
@@ -535,6 +598,7 @@ export interface FileRouteTypes {
     | '/_authed/boards'
     | '/_authed/dashboard'
     | '/_authed/documents'
+    | '/_authed/microblog'
     | '/_authed/profile'
     | '/_authed/tasks'
     | '/demo/clerk'
@@ -545,6 +609,7 @@ export interface FileRouteTypes {
     | '/example/chat'
     | '/sign-in/$'
     | '/_authed/boards/$boardId'
+    | '/_authed/resources/$resourceId'
     | '/_authed/teams/$teamId'
     | '/demo/form/address'
     | '/demo/form/simple'
@@ -552,6 +617,7 @@ export interface FileRouteTypes {
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
     | '/example/guitars/$guitarId'
+    | '/_authed/resources/'
     | '/_authed/teams/'
     | '/example/guitars/'
   fileRoutesById: FileRoutesById
@@ -632,9 +698,12 @@ export const routeTree = rootRoute
         "/_authed/boards",
         "/_authed/dashboard",
         "/_authed/documents",
+        "/_authed/microblog",
         "/_authed/profile",
         "/_authed/tasks",
+        "/_authed/resources/$resourceId",
         "/_authed/teams/$teamId",
+        "/_authed/resources/",
         "/_authed/teams/"
       ]
     },
@@ -651,6 +720,10 @@ export const routeTree = rootRoute
     },
     "/_authed/documents": {
       "filePath": "_authed/documents.tsx",
+      "parent": "/_authed"
+    },
+    "/_authed/microblog": {
+      "filePath": "_authed/microblog.tsx",
       "parent": "/_authed"
     },
     "/_authed/profile": {
@@ -686,6 +759,10 @@ export const routeTree = rootRoute
       "filePath": "_authed/boards.$boardId.tsx",
       "parent": "/_authed/boards"
     },
+    "/_authed/resources/$resourceId": {
+      "filePath": "_authed/resources.$resourceId.tsx",
+      "parent": "/_authed"
+    },
     "/_authed/teams/$teamId": {
       "filePath": "_authed/teams.$teamId.tsx",
       "parent": "/_authed"
@@ -707,6 +784,10 @@ export const routeTree = rootRoute
     },
     "/example/guitars/$guitarId": {
       "filePath": "example.guitars/$guitarId.tsx"
+    },
+    "/_authed/resources/": {
+      "filePath": "_authed/resources.index.tsx",
+      "parent": "/_authed"
     },
     "/_authed/teams/": {
       "filePath": "_authed/teams.index.tsx",

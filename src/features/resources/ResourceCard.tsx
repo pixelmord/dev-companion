@@ -56,9 +56,9 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ resource }) => {
 			<p className="text-sm text-white/80 mb-3">{resource.description}</p>
 
 			<div className="flex flex-wrap gap-2 mb-3">
-				{resource.tags.map((tag, index) => (
+				{resource.tags.map((tag) => (
 					<span
-						key={index}
+						key={tag}
 						className="text-xs bg-retro-light px-2 py-1 rounded-sm text-neon-cyan"
 					>
 						#{tag}

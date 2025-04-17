@@ -1,7 +1,7 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import * as Sentry from "@sentry/browser";
+import * as Sentry from "@sentry/node";
 import type { Doc, Id } from "./_generated/dataModel";
 
 // Helper function to get the current user or throw if not authenticated
@@ -75,14 +75,22 @@ export const listDocuments = query({
       const user = await getUserOrThrow(ctx);
 
       // Build the query
-      let documents: Doc<"documents">[] = [];
+      const seen = new Set<string>(); // store _id.toString()
+      const documents: Doc<"documents">[] = [];
+      const addUnique = (docs: Doc<"documents">[]) => {
+  for (const d of docs) {
+    if (seen.has(d._id)) continue;
+    seen.add(d._id);
+    documents.push(d);
+  }
+};
 
       // Documents owned by the user
       const userDocuments = await ctx.db
         .query("documents")
         .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
         .collect();
-      documents = [...documents, ...userDocuments];
+      addUnique(userDocuments);
 
       // Team documents if requested
       if (args.teamId) {
@@ -93,11 +101,7 @@ export const listDocuments = query({
           .collect();
 
         // Add team documents not already in the list
-        for (const doc of teamDocuments) {
-          if (!documents.some(d => d._id === doc._id)) {
-            documents.push(doc);
-          }
-        }
+        addUnique(teamDocuments);
       }
 
       // Public documents if requested
@@ -108,11 +112,7 @@ export const listDocuments = query({
           .collect();
 
         // Add public documents not already in the list
-        for (const doc of publicDocuments) {
-          if (!documents.some(d => d._id === doc._id)) {
-            documents.push(doc);
-          }
-        }
+        addUnique(publicDocuments);
       }
 
       // Documents owned by specific user if requested

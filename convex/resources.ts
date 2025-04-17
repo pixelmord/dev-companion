@@ -13,6 +13,9 @@ export const resourcesTables = {
       v.literal("document"),
       v.literal("codeSnippet"),
       v.literal("externalLink"),
+      v.literal("blog"),
+      v.literal("podcast"),
+      v.literal("github"),
       v.literal("feed")
     ),
 
@@ -56,6 +59,13 @@ export const resourcesTables = {
       v.object({
         type: v.literal("feed"),
         source: v.string(),
+        refreshFrequency: v.number(), // in minutes
+        lastUpdated: v.number(),
+      }),
+      // Github
+      v.object({
+        type: v.literal("github"),
+        url: v.string(),
         refreshFrequency: v.number(), // in minutes
         lastUpdated: v.number(),
       })

@@ -17,6 +17,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Route } from "@/routes/_authed/profile";
 import { useUser } from "@clerk/clerk-react";
 import type { Doc, Id } from "@convex-server/_generated/dataModel";
+import {
+	createUserProfileSchema,
+	updateUserProfileSchema,
+} from "@convex-server/users";
 import { useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { useCallback, useState } from "react";
@@ -45,35 +49,10 @@ export type ProfileCreateSchemaType = Omit<
 	"_id" | "_creationTime" | "updatedAt" | "clerkId" | "role" | "lastActive"
 >;
 
-const schema = z.object({
-	name: z.string().min(1, "Full name is required"),
-	email: z.string().email("Invalid email address"),
-	bio: z.string(),
-	avatarUrl: z.string().optional(),
-	preferences: z.object({
-		theme: z.enum(["light", "dark", "system"]),
-		notifications: z.boolean(),
-		emailDigest: z.boolean(),
-	}),
-});
-
-type ProfileFormValues = z.infer<typeof schema>;
-
-const defaultValues: ProfileFormValues = {
-	name: "",
-	email: "",
-	bio: "",
-	preferences: {
-		theme: "system",
-		notifications: true,
-		emailDigest: true,
-	},
-	avatarUrl: undefined,
-};
+type ProfileFormValues = z.infer<typeof createUserProfileSchema>;
 
 export function ProfileSetup() {
-	const { userId } = Route.useRouteContext();
-	const { user } = useUser();
+	const { clerkId } = Route.useRouteContext();
 	const navigate = useNavigate();
 	const { mutate: createProfile, isPending } = useCreateProfile();
 	const avatarUpload = useAvatarUpload();
@@ -86,17 +65,29 @@ export function ProfileSetup() {
 	const [nextTab, setNextTab] = useState<
 		"profile" | "preferences" | "teams" | null
 	>(null);
+	const defaultValues: ProfileFormValues = {
+		clerkId,
+		name: "",
+		email: "",
+		role: "user",
+		bio: "",
+		preferences: {
+			theme: "system",
+			notifications: true,
+			emailDigest: true,
+		},
+		avatarUrl: undefined,
+	};
 
 	const form = useAppForm({
 		defaultValues,
 		validators: {
-			onBlur: schema,
+			onBlur: createUserProfileSchema,
 		},
 		onSubmit: async (formData) => {
 			try {
 				await createProfile({
 					...formData.value,
-					clerkId: userId,
 				});
 				toast.success("Profile created successfully!");
 				navigate({ to: "/dashboard" });
