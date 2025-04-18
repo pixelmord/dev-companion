@@ -1,0 +1,106 @@
+---
+description: Enforces the use of pnpm as the sole package manager for consistent dependency management
+globs: ["**/package.json", "**/*.md", "**/*.ts", "**/*.js"]
+alwaysApply: true
+---
+
+# Package Management Standards
+
+- **Required Package Manager: pnpm**
+  - ✅ DO: Use pnpm for all package management operations
+  - ❌ DON'T: Use npm or yarn commands
+
+- **Installation Commands**
+
+  ```bash
+  # ✅ DO:
+  pnpm install              # Install all dependencies
+  pnpm add <package>       # Add a production dependency
+  pnpm add -D <package>    # Add a development dependency
+  pnpm remove <package>    # Remove a dependency
+
+  # ❌ DON'T:
+  npm install
+  npm i
+  yarn add
+  yarn install
+  ```
+
+- **Script Execution**
+
+  ```bash
+  # ✅ DO:
+  pnpm run <script>        # Run a script from package.json
+  pnpm <script>           # Direct script execution if available
+
+  # ❌ DON'T:
+  npm run
+  yarn run
+  ```
+
+- **Workspace Management**
+
+  ```bash
+  # ✅ DO:
+  pnpm -r <command>       # Run command in all workspaces
+  pnpm --filter <pkg> <cmd>  # Run command in specific workspace
+
+  # ❌ DON'T:
+  npm -w
+  yarn workspace
+  ```
+
+- **Lock File Management**
+  - ✅ DO: Commit pnpm-lock.yaml
+  - ❌ DON'T: Include package-lock.json or yarn.lock
+  - ❌ DON'T: Manually modify pnpm-lock.yaml
+
+- **Project Setup**
+  - Initialize new projects with: `pnpm init`
+  - Use `.npmrc` to configure pnpm settings
+  - Add `engine` field to package.json:
+
+    ```json
+    {
+      "engines": {
+        "node": ">=18",
+        "pnpm": ">=8"
+      }
+    }
+    ```
+
+- **CI/CD Configuration**
+  - Use pnpm-specific CI commands
+  - Cache pnpm store directory
+  - Example GitHub Actions setup:
+
+    ```yaml
+    - uses: pnpm/action-setup@v2
+      with:
+        version: 8
+    - run: pnpm install --frozen-lockfile
+    ```
+
+- **Best Practices**
+  - Use `pnpm dlx` instead of `npx` for one-off package execution
+  - Leverage pnpm's built-in security features
+  - Use `pnpm audit` for security checks
+  - Configure `.npmrc` with:
+
+    ```
+    engine-strict=true
+    auto-install-peers=true
+    ```
+
+- **Troubleshooting**
+  - Clear pnpm store: `pnpm store prune`
+  - Rebuild packages: `pnpm rebuild`
+  - Update pnpm: `corepack prepare pnpm@latest --activate`
+
+- **Migration Guide**
+  1. Remove existing lock files (package-lock.json, yarn.lock)
+  2. Remove node_modules directory
+  3. Install pnpm: `corepack enable && corepack prepare pnpm@latest --activate`
+  4. Run `pnpm install`
+  5. Update CI/CD configurations
+  6. Update documentation and scripts

@@ -1,6 +1,6 @@
 ---
 description: Best practices for using Tailwind CSS in React applications
-globs: **/*.{ts,tsx}, src/styles/**/*.{css,scss}
+globs: src/**/*.tsx,src/**/*.css
 alwaysApply: false
 ---
 

@@ -9,7 +9,7 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@radix-ui/react-separator";
 import { Fragment, type ReactNode } from "react";
-// import { ModeToggle } from "../ModeToggle";
+import { ModeToggle } from "./ModeToggle";
 
 interface ContentLayoutProps {
 	children: ReactNode;
@@ -54,7 +54,7 @@ export function ContentLayout({ children, breadcrumbs }: ContentLayoutProps) {
 				</div>
 				<div className="flex items-center gap-2 px-4">
 					<Separator orientation="vertical" className="mr-2 h-4" />
-					{/* <ModeToggle /> */}
+					<ModeToggle />
 				</div>
 			</header>
 			<div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min m-4 p-4">

@@ -8,21 +8,21 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
-import Header from "../components/Header";
-
 import TanstackQueryLayout from "../integrations/tanstack-query/layout";
 
 import appCss from "../styles.css?url";
 
-import { DefaultCatchBoundary } from "@/components/DefaultCatchBoundary";
 import { NotFound } from "@/components/NotFound";
+import { DefaultCatchBoundary } from "@/features/app/DefaultCatchBoundary";
 
+import { Toaster } from "@/components/ui/sonner";
 import { getAuth } from "@clerk/tanstack-react-start/server";
 import type { ConvexQueryClient } from "@convex-dev/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import type { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
+import { ThemeProvider } from "next-themes";
 import { getWebRequest } from "vinxi/http";
 
 interface MyRouterContext {
@@ -72,7 +72,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 		}
 
 		return {
-			userId,
+			clerkId: userId,
 			token,
 		};
 	},
@@ -89,27 +89,32 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 function RootComponent() {
 	const context = useRouteContext({ from: Route.id });
 	return (
-		<ClerkProvider>
-			<ConvexProviderWithClerk client={context.convexClient} useAuth={useAuth}>
-				<RootDocument>
+		<RootDocument>
+			<ClerkProvider>
+				<ConvexProviderWithClerk
+					client={context.convexClient}
+					useAuth={useAuth}
+				>
 					<Outlet />
+					<Toaster />
 					<TanStackRouterDevtools />
-
 					<TanstackQueryLayout />
-				</RootDocument>
-			</ConvexProviderWithClerk>
-		</ClerkProvider>
+				</ConvexProviderWithClerk>
+			</ClerkProvider>
+		</RootDocument>
 	);
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang="en">
+		<html lang="en" suppressHydrationWarning>
 			<head>
 				<HeadContent />
 			</head>
 			<body>
-				{children}
+				<ThemeProvider attribute="class" enableColorScheme enableSystem>
+					{children}
+				</ThemeProvider>
 				<Scripts />
 			</body>
 		</html>
