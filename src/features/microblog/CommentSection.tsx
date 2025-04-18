@@ -10,7 +10,7 @@ interface CommentSectionProps {
 	post: MicroPost;
 }
 
-const CommentSection: React.FC<CommentSectionProps> = ({ post }) => {
+export const CommentSection: React.FC<CommentSectionProps> = ({ post }) => {
 	const [comment, setComment] = useState("");
 
 	const handleSubmitComment = (e: React.FormEvent) => {
@@ -31,11 +31,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ post }) => {
 
 	const formatDate = (dateString: string) => {
 		const date = new Date(dateString);
-		return (
-			date.toLocaleDateString() +
-			" @ " +
-			date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-		);
+		return `${date.toLocaleDateString()} @ ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 	};
 
 	const getUser = (userId: string) => {
@@ -105,77 +101,3 @@ const CommentSection: React.FC<CommentSectionProps> = ({ post }) => {
 		</div>
 	);
 };
-
-export default CommentSection;
-						<SendHorizontal size={14} className="text-neon-cyan" />
-					</Button>
-				</form>
-			)}
-		</div>
-	);
-};
-
-export default CommentSection;
-						<SendHorizontal size={14} className="text-neon-cyan" />
-					</Button>
-				</form>
-			)}
-		</div>
-	);
-};
-
-export default CommentSection;
-						<SendHorizontal size={14} className="text-neon-cyan" />
-					</Button>
-				</form>
-			)}
-		</div>
-	);
-};
-
-export default CommentSection;
-						<SendHorizontal size={14} className="text-neon-cyan" />
-					</Button>
-				</form>
-			)}
-		</div>
-	);
-};
-
-export default CommentSection;
-						<SendHorizontal size={14} className="text-neon-cyan" />
-					</Button>
-				</form>
-			)}
-		</div>
-	);
-};
-
-export default CommentSection;
-						<SendHorizontal size={14} className="text-neon-cyan" />
-					</Button>
-				</form>
-			)}
-		</div>
-	);
-};
-
-export default CommentSection;
-						<SendHorizontal size={14} className="text-neon-cyan" />
-					</Button>
-				</form>
-			)}
-		</div>
-	);
-};
-
-export default CommentSection;
-						<SendHorizontal size={14} className="text-neon-cyan" />
-					</Button>
-				</form>
-			)}
-		</div>
-	);
-};
-
-export default CommentSection;

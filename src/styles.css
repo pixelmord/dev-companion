@@ -248,6 +248,104 @@ layer(base);
   }
 }
 
+@utility retro-container {
+  @apply border border-retro-light rounded-md backdrop-blur-xs shadow-lg;
+
+  /* Apply different background colors based on theme */
+  :root:not(.dark) & {
+    @apply bg-white/90;
+  }
+
+  .dark & {
+    @apply bg-retro-medium/80;
+  }
+}
+
+@utility dark {
+  & .retro-container {
+    @apply bg-retro-medium/80;
+  }
+
+  & .retro-card {
+    @apply border-neon-cyan/20 bg-retro-medium/90 hover:border-neon-cyan/40;
+    box-shadow: 0 0 12px rgba(var(--neon-cyan-rgb), 0.08);
+  }
+
+  & .retro-button {
+    @apply bg-retro-medium hover:bg-retro-light hover:text-white;
+  }
+
+  & .text-adaptive {
+    @apply text-white;
+  }
+}
+
+@utility retro-card {
+  @apply border rounded-md p-4 transition-all duration-300;
+
+  /* Apply different styles based on theme */
+  :root:not(.dark) & {
+    @apply border-neon-cyan/20 bg-white hover:border-neon-cyan/40;
+    box-shadow: 0 0 12px rgba(var(--neon-cyan-rgb), 0.08);
+  }
+
+  .dark & {
+    @apply border-neon-cyan/20 bg-retro-medium/90 hover:border-neon-cyan/40;
+    box-shadow: 0 0 12px rgba(var(--neon-cyan-rgb), 0.08);
+  }
+}
+
+@utility retro-button {
+  @apply border border-neon-cyan text-neon-cyan px-4 py-2 rounded-md transition-all duration-300 font-mono;
+  text-shadow: 0 0 6px rgba(var(--neon-cyan-rgb), 0.6);
+
+  /* Apply different background colors based on theme */
+  :root:not(.dark) & {
+    @apply bg-white/80 hover:bg-white hover:text-neon-cyan;
+  }
+
+  .dark & {
+    @apply bg-retro-medium hover:bg-retro-light hover:text-white;
+  }
+}
+
+@utility pixel-border {
+  @apply relative;
+  image-rendering: pixelated;
+
+  &::before {
+    content: '';
+    @apply absolute inset-0 border-2 border-neon-cyan rounded opacity-70;
+    box-shadow: 0 0 8px rgba(var(--neon-cyan-rgb), 0.4);
+  }
+}
+
+@utility scanline {
+  @apply pointer-events-none fixed inset-0 z-50 opacity-10;
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(0, 0, 0, 0.5) 50%,
+    transparent 51%
+  );
+  background-size: 100% 4px;
+}
+
+@utility grid-bg {
+  @apply bg-grid-pattern bg-[size:40px_40px];
+}
+
+@utility text-adaptive {
+  /* Add light/dark specific text styles */
+  :root:not(.dark) & {
+    @apply text-retro-dark;
+  }
+
+  .dark & {
+    @apply text-white;
+  }
+}
+
 @layer base {
 	* {
 		@apply border-border outline-ring/50;

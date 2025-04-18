@@ -1,7 +1,7 @@
-import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
-import * as TaskModel from "./model/tasks";
 import { defineTable } from "convex/server";
+import { v } from "convex/values";
+import { mutation, query } from "./_generated/server";
+import * as TaskModel from "./model/tasks";
 
 export const tasksTables = {
 	tasks: defineTable({
@@ -13,32 +13,36 @@ export const tasksTables = {
 		createdBy: v.id("users"),
 		createdAt: v.number(),
 		updatedAt: v.number(),
-	}).index("by_team", ["teamId"])
+	})
+		.index("by_team", ["teamId"])
 		.index("by_assigned", ["assignedTo"])
 		.index("by_created", ["createdBy"])
 		.index("by_team_and_assigned", ["teamId", "assignedTo"]),
-}
+};
 export const getTasks = query({
 	args: {
 		teamId: v.optional(v.id("teams")),
 		assignedTo: v.optional(v.id("users")),
 	},
-	returns: v.array(v.object({
-		_id: v.id("tasks"),
-		_creationTime: v.number(),
-		text: v.string(),
-		description: v.optional(v.string()),
-		isCompleted: v.boolean(),
-		teamId: v.optional(v.id("teams")),
-		assignedTo: v.optional(v.id("users")),
-		createdBy: v.id("users"),
-		createdAt: v.number(),
-		updatedAt: v.number(),
-	})),
+	returns: v.array(
+		v.object({
+			_id: v.id("tasks"),
+			_creationTime: v.number(),
+			text: v.string(),
+			description: v.optional(v.string()),
+			isCompleted: v.boolean(),
+			teamId: v.optional(v.id("teams")),
+			assignedTo: v.optional(v.id("users")),
+			createdBy: v.id("users"),
+			createdAt: v.number(),
+			updatedAt: v.number(),
+		}),
+	),
 	handler: async (ctx, args) => {
 		if (args.teamId) {
 			return await TaskModel.getTasksByTeam(ctx, args.teamId);
-		} else if (args.assignedTo) {
+		}
+		if (args.assignedTo) {
 			return await TaskModel.getTasksByAssignee(ctx, args.assignedTo);
 		}
 		return await ctx.db.query("tasks").collect();
@@ -60,7 +64,7 @@ export const createTask = mutation({
 		}
 		if (process.env.NODE_ENV !== "production") {
 			console.warn("User identity retrieved:", { subject: identity.subject });
-	}
+		}
 		const user = await ctx.db
 			.query("users")
 			.withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
@@ -88,7 +92,6 @@ export const updateTask = mutation({
 		if (!identity) {
 			throw new Error("Unauthorized");
 		}
-		console.log(identity);
 
 		const user = await ctx.db
 			.query("users")

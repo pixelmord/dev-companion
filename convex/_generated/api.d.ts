@@ -24,7 +24,6 @@ import type * as model_projects from "../model/projects.js";
 import type * as model_resources from "../model/resources.js";
 import type * as model_tasks from "../model/tasks.js";
 import type * as model_teams from "../model/teams.js";
-import type * as model_users from "../model/users.js";
 import type * as products from "../products.js";
 import type * as projects from "../projects.js";
 import type * as resources from "../resources.js";
@@ -52,7 +51,6 @@ declare const fullApi: ApiFromModules<{
   "model/resources": typeof model_resources;
   "model/tasks": typeof model_tasks;
   "model/teams": typeof model_teams;
-  "model/users": typeof model_users;
   products: typeof products;
   projects: typeof projects;
   resources: typeof resources;

@@ -1,8 +1,8 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
+import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import * as TeamModel from "./model/teams";
-import type { Doc, Id } from "./_generated/dataModel";
 
 export const teamsTables = {
 	teams: defineTable({
@@ -18,10 +18,7 @@ export const teamsTables = {
 		// Team settings
 		settings: v.object({
 			allowInvites: v.boolean(),
-			defaultRole: v.union(
-				v.literal("admin"),
-				v.literal("member")
-			),
+			defaultRole: v.union(v.literal("admin"), v.literal("member")),
 			notificationsEnabled: v.boolean(),
 		}),
 
@@ -34,32 +31,26 @@ export const teamsTables = {
 		.index("by_visibility", ["visibility"]),
 
 	teamMembers: defineTable({
-			teamId: v.id("teams"),
-			userId: v.id("users"),
-			role: v.union(
-				v.literal("owner"),
-				v.literal("admin"),
-				v.literal("member")
-			),
-			joinedAt: v.number(),
-		}).index("by_team", ["teamId"])
-			.index("by_user", ["userId"])
-			.index("by_team_and_user", ["teamId", "userId"]),
+		teamId: v.id("teams"),
+		userId: v.id("users"),
+		role: v.union(v.literal("owner"), v.literal("admin"), v.literal("member")),
+		joinedAt: v.number(),
+	})
+		.index("by_team", ["teamId"])
+		.index("by_user", ["userId"])
+		.index("by_team_and_user", ["teamId", "userId"]),
 
 	teamInvites: defineTable({
 		teamId: v.id("teams"),
 		invitedBy: v.id("users"),
 		invitedEmail: v.string(),
-		role: v.union(
-			v.literal("admin"),
-			v.literal("member")
-		),
+		role: v.union(v.literal("admin"), v.literal("member")),
 		token: v.string(),
 		status: v.union(
 			v.literal("pending"),
 			v.literal("accepted"),
 			v.literal("declined"),
-			v.literal("expired")
+			v.literal("expired"),
 		),
 		expiresAt: v.number(),
 		createdAt: v.number(),
@@ -95,11 +86,13 @@ export const updateTeamSchema = v.object({
 	name: v.optional(v.string()),
 	description: v.optional(v.string()),
 	visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
-	settings: v.optional(v.object({
-		allowInvites: v.boolean(),
-		defaultRole: v.union(v.literal("admin"), v.literal("member")),
-		notificationsEnabled: v.boolean(),
-	})),
+	settings: v.optional(
+		v.object({
+			allowInvites: v.boolean(),
+			defaultRole: v.union(v.literal("admin"), v.literal("member")),
+			notificationsEnabled: v.boolean(),
+		}),
+	),
 });
 
 // Query to get all teams a user is a member of
@@ -112,16 +105,20 @@ export const getUserTeams = query({
 			name: v.string(),
 			description: v.optional(v.string()),
 			ownerId: v.id("users"),
-			visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
-			settings: v.optional(v.object({
-				allowInvites: v.boolean(),
-				defaultRole: v.union(v.literal("admin"), v.literal("member")),
-				notificationsEnabled: v.boolean(),
-			})),
+			visibility: v.optional(
+				v.union(v.literal("public"), v.literal("private")),
+			),
+			settings: v.optional(
+				v.object({
+					allowInvites: v.boolean(),
+					defaultRole: v.union(v.literal("admin"), v.literal("member")),
+					notificationsEnabled: v.boolean(),
+				}),
+			),
 			createdBy: v.optional(v.id("users")),
 			createdAt: v.optional(v.number()),
 			updatedAt: v.optional(v.number()),
-		})
+		}),
 	),
 	handler: async (ctx, args) => {
 		return await TeamModel.getTeamsByMember(ctx, args.userId);
@@ -138,16 +135,20 @@ export const getTeam = query({
 			name: v.string(),
 			description: v.optional(v.string()),
 			ownerId: v.id("users"),
-			visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
-			settings: v.optional(v.object({
-				allowInvites: v.boolean(),
-				defaultRole: v.union(v.literal("admin"), v.literal("member")),
-				notificationsEnabled: v.boolean(),
-			})),
+			visibility: v.optional(
+				v.union(v.literal("public"), v.literal("private")),
+			),
+			settings: v.optional(
+				v.object({
+					allowInvites: v.boolean(),
+					defaultRole: v.union(v.literal("admin"), v.literal("member")),
+					notificationsEnabled: v.boolean(),
+				}),
+			),
 			createdBy: v.optional(v.id("users")),
 			updatedAt: v.optional(v.number()),
 		}),
-		v.null()
+		v.null(),
 	),
 	handler: async (ctx, args) => {
 		return await TeamModel.getTeam(ctx, args.id);
@@ -172,29 +173,31 @@ export const getTeamInvites = query({
 	args: {
 		teamId: v.id("teams"),
 	},
-	returns: v.array(v.object({
-		_id: v.id("teamInvites"),
-		_creationTime: v.number(),
-		teamId: v.id("teams"),
-		invitedBy: v.id("users"),
-		invitedEmail: v.string(),
-		role: v.union(v.literal("admin"), v.literal("member")),
-		token: v.string(),
-		status: v.union(
-			v.literal("pending"),
-			v.literal("accepted"),
-			v.literal("declined"),
-			v.literal("expired")
-		),
-		expiresAt: v.number(),
-		updatedAt: v.number(),
-	})),
+	returns: v.array(
+		v.object({
+			_id: v.id("teamInvites"),
+			_creationTime: v.number(),
+			teamId: v.id("teams"),
+			invitedBy: v.id("users"),
+			invitedEmail: v.string(),
+			role: v.union(v.literal("admin"), v.literal("member")),
+			token: v.string(),
+			status: v.union(
+				v.literal("pending"),
+				v.literal("accepted"),
+				v.literal("declined"),
+				v.literal("expired"),
+			),
+			expiresAt: v.number(),
+			updatedAt: v.number(),
+		}),
+	),
 	handler: async (ctx, { teamId }) => {
 		// Get pending invites for the team
 		const invites = await ctx.db
 			.query("teamInvites")
 			.withIndex("by_team_and_status", (q) =>
-				q.eq("teamId", teamId).eq("status", "pending")
+				q.eq("teamId", teamId).eq("status", "pending"),
 			)
 			.collect();
 
@@ -206,23 +209,25 @@ export const getInvitesByEmail = query({
 	args: {
 		email: v.string(),
 	},
-	returns: v.array(v.object({
-		_id: v.id("teamInvites"),
-		_creationTime: v.number(),
-		teamId: v.id("teams"),
-		invitedBy: v.id("users"),
-		invitedEmail: v.string(),
-		role: v.union(v.literal("admin"), v.literal("member")),
-		token: v.string(),
-		status: v.union(
-			v.literal("pending"),
-			v.literal("accepted"),
-			v.literal("declined"),
-			v.literal("expired")
-		),
-		expiresAt: v.number(),
-		updatedAt: v.number(),
-	})),
+	returns: v.array(
+		v.object({
+			_id: v.id("teamInvites"),
+			_creationTime: v.number(),
+			teamId: v.id("teams"),
+			invitedBy: v.id("users"),
+			invitedEmail: v.string(),
+			role: v.union(v.literal("admin"), v.literal("member")),
+			token: v.string(),
+			status: v.union(
+				v.literal("pending"),
+				v.literal("accepted"),
+				v.literal("declined"),
+				v.literal("expired"),
+			),
+			expiresAt: v.number(),
+			updatedAt: v.number(),
+		}),
+	),
 	handler: async (ctx, { email }) => {
 		// Get pending invites for the email
 		const invites = await ctx.db
@@ -263,7 +268,12 @@ export const addTeamMember = mutation({
 	},
 	returns: v.id("teamMembers"),
 	handler: async (ctx, args) => {
-		return await TeamModel.addTeamMember(ctx, args.teamId, args.userId, args.role);
+		return await TeamModel.addTeamMember(
+			ctx,
+			args.teamId,
+			args.userId,
+			args.role,
+		);
 	},
 });
 
@@ -276,7 +286,12 @@ export const updateTeamMemberRole = mutation({
 	},
 	returns: v.id("teamMembers"),
 	handler: async (ctx, args) => {
-		return await TeamModel.updateTeamMemberRole(ctx, args.teamId, args.userId, args.newRole);
+		return await TeamModel.updateTeamMemberRole(
+			ctx,
+			args.teamId,
+			args.userId,
+			args.newRole,
+		);
 	},
 });
 
@@ -341,11 +356,13 @@ export const acceptInvite = mutation({
 		description: v.optional(v.string()),
 		ownerId: v.id("users"),
 		visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
-		settings: v.optional(v.object({
-			allowInvites: v.boolean(),
-			defaultRole: v.union(v.literal("admin"), v.literal("member")),
-			notificationsEnabled: v.boolean(),
-		})),
+		settings: v.optional(
+			v.object({
+				allowInvites: v.boolean(),
+				defaultRole: v.union(v.literal("admin"), v.literal("member")),
+				notificationsEnabled: v.boolean(),
+			}),
+		),
 		createdBy: v.optional(v.id("users")),
 		updatedAt: v.optional(v.number()),
 	}),
@@ -398,9 +415,9 @@ export const getTeamMembers = query({
 			role: v.union(
 				v.literal("owner"),
 				v.literal("admin"),
-				v.literal("member")
+				v.literal("member"),
 			),
-		})
+		}),
 	),
 	handler: async (ctx, args) => {
 		// Fetch team memberships for the given teamId
@@ -425,12 +442,12 @@ export const getTeamMembers = query({
 					avatarUrl: undefined,
 					role: membership.role as "owner" | "admin" | "member",
 				};
-			})
+			}),
 		);
 
 		// Filter out any null results (if user fetch failed)
 		return memberDetails.filter((details) => details !== null) as NonNullable<
-			typeof memberDetails[number]
+			(typeof memberDetails)[number]
 		>[];
 	},
 });

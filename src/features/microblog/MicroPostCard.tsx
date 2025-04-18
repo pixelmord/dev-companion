@@ -21,7 +21,7 @@ import {
 	mockResources,
 } from "@/data/mock-data";
 import CodeSnippet from "./CodeSnippet";
-import CommentSection from "./CommentSection";
+import { CommentSection } from "./CommentSection";
 
 interface MicroPostCardProps {
 	post: MicroPost;
@@ -32,11 +32,7 @@ const MicroPostCard: React.FC<MicroPostCardProps> = ({ post }) => {
 
 	const formatDate = (dateString: string) => {
 		const date = new Date(dateString);
-		return (
-			date.toLocaleDateString() +
-			" @ " +
-			date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-		);
+		return `${date.toLocaleDateString()} @ ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 	};
 
 	const poster =
