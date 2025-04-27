@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authed/tasks")({
 
 function Tasks() {
 	const [text, setText] = useState("");
-	const tasks = useQuery(api.tasks.getTasks);
+	const tasks = useQuery(api.tasks.getTasks, {});
 	const createTask = useMutation(api.tasks.createTask);
 	const updateTask = useMutation(api.tasks.updateTask);
 

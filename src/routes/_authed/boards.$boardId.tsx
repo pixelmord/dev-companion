@@ -1,5 +1,5 @@
-import { Board } from "@/components/Board";
 import { Loader } from "@/components/Loader";
+import { Board } from "@/features/trello-board/Board";
 import { boardQueries } from "@/queries";
 import { createFileRoute } from "@tanstack/react-router";
 

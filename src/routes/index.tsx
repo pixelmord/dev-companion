@@ -1,4 +1,3 @@
-import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, createFileRoute } from "@tanstack/react-router";
@@ -17,7 +16,6 @@ function App() {
 					<span className="font-bold">DevCompanion</span>
 				</Link>
 				<nav className="ml-auto flex gap-4 sm:gap-6">
-					<Header />
 					<Link
 						className="text-sm font-medium hover:underline underline-offset-4"
 						to="/"
@@ -34,7 +32,7 @@ function App() {
 					</Link>
 					<a
 						className="text-sm font-medium hover:underline underline-offset-4"
-						href="https://github.com/pixelmord/devcompanion"
+						href="https://github.com/pixelmord/dev-companion"
 					>
 						GitHub
 					</a>
