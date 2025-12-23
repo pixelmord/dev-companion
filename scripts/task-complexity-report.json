@@ -1,0 +1,67 @@
+{
+  "meta": {
+    "generatedAt": "2025-05-09T12:24:56.993Z",
+    "tasksAnalyzed": 7,
+    "thresholdScore": 5,
+    "projectName": "Your Project Name",
+    "usedResearch": false
+  },
+  "complexityAnalysis": [
+    {
+      "taskId": 4,
+      "taskTitle": "Develop document editor with markdown support",
+      "complexityScore": 8,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the document editor implementation into detailed technical subtasks covering frontend components, backend services, data models, and user interactions. Include specific technical considerations for markdown parsing, preview rendering, template management, versioning system architecture, and team-based access controls.",
+      "reasoning": "This task involves complex UI components (markdown editor with preview), data persistence (saving/loading), versioning systems, and team-based organization. The combination of frontend and backend work with multiple interconnected features increases complexity. The versioning system alone requires careful design."
+    },
+    {
+      "taskId": 5,
+      "taskTitle": "Implement basic AI integration with Vercel AI SDK",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Detail the technical implementation steps for integrating Vercel AI SDK, focusing on API configuration, prompt engineering, response handling, UI integration points, and performance optimization. Include specific subtasks for each AI feature (content generation, suggestions, summarization, tagging, code explanation).",
+      "reasoning": "Integrating AI capabilities requires understanding the Vercel AI SDK, designing effective prompts, handling asynchronous responses, and creating intuitive UI for various AI features. Each AI capability (generation, suggestions, summarization) needs separate implementation and testing. The complexity comes from both technical integration and designing effective AI interactions."
+    },
+    {
+      "taskId": 6,
+      "taskTitle": "Build code snippet management system",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Create detailed subtasks for implementing a code snippet management system, including editor component selection/integration, syntax highlighting libraries, data modeling for snippets, tagging system architecture, search algorithm implementation, and version control mechanisms.",
+      "reasoning": "This task requires implementing a specialized editor with syntax highlighting, creating an organization system with tags, and building search functionality. While complex, many components can leverage existing libraries. The version tracking adds some complexity but is more straightforward than full document versioning."
+    },
+    {
+      "taskId": 7,
+      "taskTitle": "Develop search functionality with vector capabilities",
+      "complexityScore": 9,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down the implementation of a vector-based search system into detailed technical subtasks covering vector database selection criteria, embedding model integration, indexing pipeline, query processing, relevance scoring, UI components, and performance optimization strategies.",
+      "reasoning": "Vector-based search is highly complex, requiring knowledge of embedding models, vector databases, similarity algorithms, and search optimization. This task involves researching and selecting appropriate technologies, implementing vectorization for different content types, creating APIs for vector similarity matching, and building a sophisticated search interface. The natural language processing component adds another layer of complexity."
+    },
+    {
+      "taskId": 8,
+      "taskTitle": "Implement external content integration",
+      "complexityScore": 7,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Detail the technical implementation steps for external content integration, focusing on API authentication, data fetching strategies, content parsing/normalization, storage requirements, refresh mechanisms, and error handling for each external source (RSS, GitHub, web content).",
+      "reasoning": "This task requires integrating with multiple external APIs and services, each with their own authentication, rate limits, and data formats. The web scraping component adds complexity due to the variety of website structures. Building a recommendation system and content refresh mechanism also requires careful design. The dependencies on AI integration (task 5) indicate additional complexity."
+    },
+    {
+      "taskId": 9,
+      "taskTitle": "Build basic planning and estimation tools",
+      "complexityScore": 5,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Create detailed subtasks for implementing planning and estimation tools, focusing on data models, UI components, real-time collaboration features, and reporting mechanisms for Eisenhower Matrix and Scrum Poker implementations.",
+      "reasoning": "While this task involves multiple planning tools, each tool is relatively self-contained with well-defined functionality. The main complexity comes from implementing team participation features which likely require real-time updates. The drag-and-drop interface adds some UI complexity, but overall this task is more straightforward than others."
+    },
+    {
+      "taskId": 10,
+      "taskTitle": "Implement project management tool integrations",
+      "complexityScore": 8,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the implementation of project management tool integrations into detailed technical subtasks covering authentication flows, API interaction patterns, data synchronization strategies, webhook handling, error recovery, and configuration management for each external system (JIRA, GitHub Issues, etc.).",
+      "reasoning": "Integrating with external project management tools involves complex API interactions, authentication, and bidirectional data synchronization. Each integration (JIRA, GitHub Issues, GitHub Projects) has its own API peculiarities. The webhook support and synchronization mechanisms add significant complexity, as does the need to handle API rate limits, authentication token management, and error conditions."
+    }
+  ]
+}

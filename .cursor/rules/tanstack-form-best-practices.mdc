@@ -1,0 +1,209 @@
+---
+description: 
+globs: *.tsx,*.ts
+alwaysApply: false
+---
+# Tanstack Form Best Practices
+
+## Form Components
+
+1. Create reusable form field components in a dedicated `form` directory:
+   - `FormComponents.tsx`: Contains all form field components
+   - `form.ts`: Exports the form hook and field components
+   - `form-context.ts`: Manages form context and field context
+
+2. Use the following structure for form field components:
+   - Export named components (e.g., `TextField`, `RadioGroup`, `Switch`)
+   - Accept common props like `label`, `description`, `placeholder`
+   - Use Shadcn UI components for consistent styling
+   - Handle field state and validation through context
+
+## Form Field Implementation
+
+1. Implement form fields using the following pattern:
+
+```tsx
+export function RadioGroup<T extends string>({
+ label,
+ description,
+ options,
+}: {
+ label: string;
+ description?: string;
+ options: Array<{ label: string; value: T }>;
+}) {
+ const field = useFieldContext<T>();
+ const errors = useStore(field.store, (state) => state.meta.errors);
+
+ return (
+  <div className="space-y-4">
+   <div>
+    <Label>{label}</Label>
+    {description && (
+     <p className="text-sm text-muted-foreground">{description}</p>
+    )}
+   </div>
+   <ShadcnRadioGroup
+    className="grid grid-cols-3 gap-4"
+    value={field.state.value}
+    onValueChange={(value) => field.handleChange(value as T)}
+   >
+    {options.map((option) => (
+     <div key={option.value}>
+      <RadioGroupItem
+       value={option.value}
+       id={`${field.name}-${option.value}`}
+       className="peer sr-only"
+      />
+      <Label
+       htmlFor={`${field.name}-${option.value}`}
+       className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+      >
+       <span>{option.label}</span>
+      </Label>
+     </div>
+    ))}
+   </ShadcnRadioGroup>
+   {field.state.meta.isTouched && <ErrorMessages errors={errors} />}
+  </div>
+ );
+}
+```
+
+## Form Usage
+
+1. Define a schema using Zod for type safety and validation:
+
+```tsx
+const schema = z.object({
+ name: z.string().min(1, "Full name is required"),
+ email: z.string().email("Invalid email address"),
+ preferences: z.object({
+  theme: z.enum(["light", "dark", "system"]),
+  notifications: z.boolean(),
+ }),
+});
+```
+
+2. Use the form hook with proper configuration:
+
+```tsx
+const form = useAppForm({
+ defaultValues: {
+  name: "",
+  email: "",
+  preferences: {
+   theme: "system",
+   notifications: true,
+  },
+ },
+ validators: {
+  onBlur: schema,
+ },
+ onSubmit: async ({ value }) => {
+  // Handle form submission
+ },
+});
+```
+
+3. Render form fields using the field components:
+
+```tsx
+<form.AppField name="preferences.theme">
+ {(field) => (
+  <field.RadioGroup
+   label="Theme"
+   options={[
+    { label: "Light", value: "light" },
+    { label: "Dark", value: "dark" },
+    { label: "System", value: "system" },
+   ]}
+  />
+ )}
+</form.AppField>
+```
+
+## Form Validation
+
+1. Use Zod for schema validation:
+   - Define required fields with appropriate error messages
+   - Use nested objects for grouped fields
+   - Add custom validation rules when needed
+
+2. Display validation errors:
+   - Show errors when fields are touched
+   - Use consistent error message styling
+   - Provide clear feedback to users
+
+## Form Submission
+
+1. Handle form submission with proper error handling:
+
+```tsx
+onSubmit: async ({ value }) => {
+ try {
+  await submitData(value);
+  toast.success("Form submitted successfully!");
+ } catch (error) {
+  toast.error("Failed to submit form. Please try again.");
+  console.error("Form submission error:", error);
+ }
+},
+```
+
+2. Show loading state during submission:
+
+```tsx
+<form.AppForm>
+ <form.SubscribeButton label="Submit" />
+</form.AppForm>
+```
+
+## Form Layout
+
+1. Use consistent spacing and layout:
+   - Group related fields with `<div className="space-y-4">`
+   - Use `Separator` between field groups
+   - Maintain consistent field widths
+
+2. Implement responsive design:
+   - Use grid layouts for field groups
+   - Adjust spacing on different screen sizes
+   - Ensure touch-friendly targets on mobile
+
+## Accessibility
+
+1. Follow accessibility best practices:
+   - Use proper ARIA labels
+   - Maintain keyboard navigation
+   - Provide clear error messages
+   - Use semantic HTML elements
+
+2. Implement focus management:
+   - Show focus indicators
+   - Handle tab order
+   - Support keyboard shortcuts
+
+## Error Handling
+
+1. Display form-level errors:
+   - Show error messages at the top of the form
+   - Use toast notifications for submission errors
+   - Log errors for debugging
+
+2. Field-level error display:
+   - Show errors below fields
+   - Use consistent error styling
+   - Clear errors on field change
+
+## Performance
+
+1. Optimize form rendering:
+   - Use field-level components
+   - Avoid unnecessary re-renders
+   - Implement proper memoization
+
+2. Handle large forms:
+   - Split into sections or steps
+   - Use dynamic form fields
+   - Implement proper loading states
