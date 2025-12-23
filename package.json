@@ -5,7 +5,7 @@
   "scripts": {
     "start": "vinxi start",
     "build": "vinxi build",
-    "serve": "vite preview --port 3011",
+    "serve": "vite preview --port 3033",
     "test": "vitest",
     "test:once": "vitest run",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
@@ -14,7 +14,7 @@
     "lint": "biome lint",
     "check": "biome check",
     "dev": "npx convex dev --once && concurrently -r npm:dev:web npm:dev:db",
-    "dev:web": "vinxi dev --port 3011",
+    "dev:web": "vinxi dev --port 3033",
     "dev:db": "convex dev --run board:seed",
     "list": "node scripts/dev.js list",
     "generate": "node scripts/dev.js generate",
